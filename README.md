@@ -45,10 +45,10 @@ If you have another distribution, you can follow [the steps described here for S
 
 ### Quickest way - On Debian/Ubuntu
 
-Get the latest `.deb` package depending on your architecture from this project in [releases](https://github.com/PentHertz/SoapyHarogic/releases) and install it with `dpkg` as follows (example with AMD64):
+Get the latest `.deb` package depending on your architecture from this project in [releases](https://github.com/HAROGIC-Technologies/soapy-htra/releases) and install it with `dpkg` as follows (example with AMD64):
 
 ```bash
-wget https://github.com/PentHertz/SoapyHarogic/releases/download/v1.0/soapyharogic_1.0_amd64.deb
+wget https://github.com/HAROGIC-Technologies/soapy-htra/releases/download/v1.0/soapyharogic_2.0_amd64.deb
 sudo dpkg -i soapyharogic_1.0_amd64.deb
 sudo apt install -f # installing missing dependencies
 ```
@@ -62,7 +62,7 @@ sudo apt install soapysdr-tools gnuradio
 
 ### 1. 🔨 Install the SDK
 
-To install the SDK, you can take the `Linux_Example/Install_HTRA_SDK` path of your USB stick provided by Harogic, or you can use the [unofficial GitHub repository](https://github.com/PentHertz/rfswift_harogic_install/releases) and download the `Install_HTRA_SDK.zip` you will unzip.
+To install the SDK, you can take the `Linux_Example/Install_HTRA_SDK` path of your USB stick provided by Harogic
 
 Then entering in the `Install_HTRA_SDK` folder you can install everything as follows:
 
@@ -94,7 +94,6 @@ The calibration file `CalFile` directory must be placed in `/usr/bin` or you mus
 
 ```bash
 $ ls /usr/bin/CalFile 
-010_ff00aa00_ifacal.txt  022_ff00aa00_rfacal.txt  ...
 ```
 
 ### 4. ✅ Verify Installation
@@ -261,4 +260,5 @@ The script provides an interactive menu to:
 You can apply all tweaks at once or individually. A "Revert to Defaults" option is also available. It is recommended to apply these tweaks before running high-bandwidth applications.
 
 🎉 **Happy SDR-ing!** If you encounter any issues, please open an issue on GitHub. 🐛➡️🔧
+
 
