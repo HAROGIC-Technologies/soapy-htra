@@ -78,8 +78,8 @@ If you have installed the Soapy library and the SDK, you are now ready to compil
 Clone the repository and build the module using CMake:
 
 ```bash
-git clone https://github.com/PentHertz/SoapyHarogic.git
-cd SoapyHarogic
+git clone https://github.com/HAROGIC-Technologies/soapy-htra.git
+cd soapy-htra
 mkdir build
 cd build
 cmake ..
@@ -261,3 +261,4 @@ The script provides an interactive menu to:
 You can apply all tweaks at once or individually. A "Revert to Defaults" option is also available. It is recommended to apply these tweaks before running high-bandwidth applications.
 
 🎉 **Happy SDR-ing!** If you encounter any issues, please open an issue on GitHub. 🐛➡️🔧
+
