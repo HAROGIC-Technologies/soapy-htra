@@ -4,7 +4,6 @@ A SoapySDR module for Harogic HTRA series spectrum analysis devices. 🎯
 
 This module allows software that supports the SoapySDR API (like GQRX, GNU Radio, CubicSDR, rtl_433, etc.) to use Harogic devices as a general-purpose SDR receiver. 🔧
 
-**👨‍💻 Author:** Sébastien Dudek / [penthertz.com](https://penthertz.com)  
 **📄 License:** LGPL v2.1
 
 ## ✨ Features
@@ -191,7 +190,7 @@ The Harogic device uses a multi-stage gain system controlled by three separate e
 
 |Gain Element|Type|Range|Description|
 |---|---|---|---|
-|`REF`|Integer|-100 to 7 [dBm]|**Reference Level.** This is the primary gain control. It sets the target power level for the top of the ADC's range. **Use a high value for strong signals to prevent overflow.**|
+|`REF`|Integer|-50 to 23 [dBm]|**Reference Level.** This is the primary gain control. It sets the target power level for the top of the ADC's range. **Use a high value for strong signals to prevent overflow.**|
 |`PREAMP`|Boolean|On/Off|Toggles the front-end low-noise preamplifier. `On` (1.0) enables it for better sensitivity on weak signals. `Off` (0.0) disables it.|
 |`IF_AGC`|Boolean|On/Off|Toggles the Intermediate Frequency (IF) Automatic Gain Control.|
 
@@ -260,5 +259,6 @@ The script provides an interactive menu to:
 You can apply all tweaks at once or individually. A "Revert to Defaults" option is also available. It is recommended to apply these tweaks before running high-bandwidth applications.
 
 🎉 **Happy SDR-ing!** If you encounter any issues, please open an issue on GitHub. 🐛➡️🔧
+
 
 
