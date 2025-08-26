@@ -48,7 +48,7 @@ Get the latest `.deb` package depending on your architecture from this project i
 
 ```bash
 wget https://github.com/HAROGIC-Technologies/soapy-htra/releases/download/v1.0/soapyharogic_2.0_amd64.deb
-sudo dpkg -i soapyharogic_1.0_amd64.deb
+sudo dpkg -i soapyharogic_2.0_amd64.deb
 sudo apt install -f # installing missing dependencies
 ```
 
@@ -259,6 +259,7 @@ The script provides an interactive menu to:
 You can apply all tweaks at once or individually. A "Revert to Defaults" option is also available. It is recommended to apply these tweaks before running high-bandwidth applications.
 
 🎉 **Happy SDR-ing!** If you encounter any issues, please open an issue on GitHub. 🐛➡️🔧
+
 
 
 
