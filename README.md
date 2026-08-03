@@ -1,265 +1,563 @@
-# 📡 SoapyHarogic
+# SoapyHarogic
 
-A SoapySDR module for Harogic HTRA series spectrum analysis devices. 🎯
+SoapyHarogic integrates **HAROGIC HTRA-series receivers** with the vendor-neutral **SoapySDR** hardware abstraction layer. It translates standard SoapySDR operations—device discovery, frequency and gain control, sample-rate configuration, and IQ streaming—into HAROGIC HTRA API calls.
 
-This module allows software that supports the SoapySDR API (like GQRX, GNU Radio, CubicSDR, rtl_433, etc.) to use Harogic devices as a general-purpose SDR receiver. 🔧
+This allows compatible applications such as **GNU Radio**, Gqrx, SDR++, and custom SoapySDR programs to use a HAROGIC receiver through a common SDR interface instead of calling the device API directly.
 
-**📄 License:** LGPL v2.1
+## Contents
 
-## ✨ Features
+- [How it works](#how-it-works)
+- [Features](#features)
+- [System requirements](#system-requirements)
+- [Repository layout](#repository-layout)
+- [Before installation](#before-installation)
+- [Automatic installation](#automatic-installation)
+- [Verify the installation](#verify-the-installation)
+- [Manual installation](#manual-installation)
+- [GNU Radio examples](#gnu-radio-examples)
+- [WLAN extension](#wlan-extension)
+- [ADS-B extension and web map](#ads-b-extension-and-web-map)
+- [Driver configuration](#driver-configuration)
+- [Performance tuning](#performance-tuning)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
-- 🔍 Auto-discovery of connected Harogic devices
-- 📊 Supports IQ streaming in multiple native formats: **complex 32-bit signed integer (CS32)**, **complex 16-bit signed integer (CS16)**, and **complex 8-bit signed integer (CS8)**.
-- ⚙️ Configurable sample rates based on device capabilities
-- 📻 Full control over RF frequency
-- 🎛️ Comprehensive gain control through standard SoapySDR APIs:
-    - 📏 Reference Level (REF)
-    - 🔊 Preamplifier (PREAMP)
-    - 🤖 IF AGC (IF_AGC)
-- 🛠️ Support for device-specific settings:
-    - 🎯 Gain Strategy (Low Noise / High Linearity)
-    - 🔄 LO Optimization Mode
+## How it works
 
-## 📦 Dependencies
+SoapySDR provides a standardized interface between SDR applications and hardware drivers. The software stack can be viewed as four layers:
 
-Before building, you must have the following installed on your system:
+1. **Application layer** — GNU Radio, Gqrx, SDR++, or a custom signal-processing application.
+2. **SoapySDR interface layer** — common APIs for device discovery, tuning, gain, sample rate, bandwidth, and IQ streaming.
+3. **SoapyHarogic and HTRA API layer** — converts SoapySDR calls into HAROGIC-specific API calls.
+4. **HAROGIC hardware layer** — receives RF signals, tunes the receiver, samples IQ data, and transfers the samples to the host.
 
-- **🧩 SoapySDR Development Libraries**: libsoapysdr-dev
-- **📚 Harogic HTRA API**: The `libhtra_api.so` library and the `htra_api.h` header file must be installed in a system path (e.g., /usr/local/lib/, /usr/local/include/, or in /opt/htraapi/***)
-- **🔨 CMake**: cmake
-- **⚡ A C++ Compiler**: g++
+The result is a HAROGIC receiver that can be accessed as a standard SoapySDR RX device.
 
-On a Debian/Ubuntu-based system, you can install the dependencies with:
+## Features
 
-```bash
-sudo apt-get update
-sudo apt-get install build-essential cmake libsoapysdr-dev soapysdr-tools
+- Automatic discovery of connected HAROGIC devices
+- Receive-only IQ streaming through SoapySDR
+- Device selection by serial number
+- Configurable center frequency and device-supported sample rates
+- Native IQ formats: `CS32`, `CS16`, and `CS8`
+- Automatic format selection based on sample rate
+- Reference-level, preamplifier, and IF AGC controls
+- Selectable RF input/antenna ports
+- Low-noise and high-linearity gain strategies
+- LO optimization modes for speed, spurs, or phase noise
+- GNU Radio examples for basic reception and several demodulation workflows
+- Optional WLAN and ADS-B extension installers
+
+## System requirements
+
+The reference workflow in the accompanying guide uses the following environment:
+
+| Item | Reference requirement |
+| --- | --- |
+| Operating system | Ubuntu 22.04 or later |
+| GNU Radio | 3.9 or later |
+| CPU architecture | x86_64 in the documented example |
+| USB connection | USB 3.0-capable cable and port |
+
+The included HTRA SDK installer currently accepts:
+
+- `x86_64`
+- `aarch64` / `arm64`
+
+Although an `armv7` library directory is included in the package, the current `install_htraapi_lib.sh` script does not install ARMv7 libraries and will report an unsupported architecture.
+
+The SoapyHarogic CMake project requires **SoapySDR 0.8** or a compatible installation.
+
+### Virtual machine users
+
+When using Ubuntu in a virtual machine:
+
+1. Confirm that the physical USB cable and host USB port support USB 3.0.
+2. Configure the virtual machine USB controller for USB 3.1/3.2.
+3. Attach the HAROGIC device to the guest operating system rather than leaving it connected to the host.
+
+For VMware, the setting is typically:
+
+```text
+VM > Settings > Hardware > USB Controller > USB Compatibility > USB 3.2
 ```
 
-If you have another distribution, you can follow [the steps described here for Soapy installation](https://github.com/pothosware/PothosCore/wiki/BuildGuide).
+## Repository layout
 
-🔧 **Important**: Calibration data must be placed in `/usr/bin/CalFile` directory in order to work.
-
-## 🚀 Installation
-
-### Quickest way - On Debian/Ubuntu
-
-Get the latest `.deb` package depending on your architecture from this project in [releases](https://github.com/HAROGIC-Technologies/soapy-htra/releases) and install it with `dpkg` as follows (example with AMD64):
-
-```bash
-wget https://github.com/HAROGIC-Technologies/soapy-htra/releases/download/v1.0/soapyharogic_2.0_amd64.deb
-sudo dpkg -i soapyharogic_2.0_amd64.deb
-sudo apt install -f # installing missing dependencies
+```text
+soapy-harogic/
+├── install.sh
+├── CalFile/
+├── htra_sdk/
+│   ├── install_htraapi_lib.sh
+│   └── htraapi/
+│       ├── configs/
+│       ├── inc/
+│       └── lib/
+│           ├── x86_64/
+│           ├── aarch64/
+│           └── armv7/
+└── soapy-htra/
+    ├── CMakeLists.txt
+    ├── HarogicDevice.cpp
+    ├── HarogicDevice.hpp
+    ├── performance_mode.sh
+    └── examples/
+        ├── basic_example/
+        ├── AM_demod/
+        ├── FM_demod/
+        ├── QPSK_demod/
+        ├── QAM_demod/
+        ├── WLAN/
+        └── ADS-B/
 ```
 
-After copying the content of your `CalFile` directory provided by Harogic in `/usr/bin/CalFile` in your filesystem, we can install SoapySDR tools to detect our device, or even play with it now on GNU Radio.
+## Before installation
 
-To install SoapySDR tools and GNU Radio:
-```bash
-sudo apt install soapysdr-tools gnuradio
+### 1. Add the calibration files
+
+Copy the calibration files supplied with the receiver into:
+
+```text
+soapy-harogic/CalFile/
 ```
 
-### 1. 🔨 Install the SDK
+The main installer creates this symbolic link:
 
-To install the SDK, you can take the `Linux_Example/Install_HTRA_SDK` path of your USB stick provided by Harogic
-
-Then entering in the `Install_HTRA_SDK` folder you can install everything as follows:
-
-```bash
-chmod +x install_htraapi_lib.sh
-./install_htraapi_lib.sh
+```text
+/usr/bin/CalFile -> <repository>/CalFile
 ```
 
-If you have installed the Soapy library and the SDK, you are now ready to compile the SoapyHarogic module.
+Do not move or delete the extracted repository after installation unless you recreate the link. Otherwise, the calibration path will become invalid.
 
-### 2. 🏗️ Build the Module
+> The installer removes any existing file, directory, or symbolic link at `/usr/bin/CalFile` before creating the new link. Back up an existing calibration directory first when necessary.
 
-Clone the repository and build the module using CMake:
-
-```bash
-git clone https://github.com/HAROGIC-Technologies/soapy-htra.git
-cd soapy-htra
-mkdir build
-cd build
-cmake ..
-make && sudo make install
-```
-
-This will typically build and install `libsoapyharogic.so` to `/usr/local/lib/SoapySDR/modules0.8/`. 📂
-
-### 3. 🎯 Calibration files
-
-The calibration file `CalFile` directory must be placed in `/usr/bin` or you must make a symlink at `/usr/bin/CalFile` pointing to that directory:
+### 2. Check the system architecture
 
 ```bash
-$ ls /usr/bin/CalFile 
+uname -m
 ```
 
-### 4. ✅ Verify Installation
+Expected supported results are `x86_64`, `aarch64`, or `arm64`.
 
-Check that SoapySDR can see your device and driver:
+### 3. Connect the receiver
+
+Use a USB 3.0-capable cable and port. For devices that require an external power connector, connect the required power supply before starting IQ streaming.
+
+## Automatic installation
+
+Open a terminal in the extracted repository root and run:
+
+```bash
+chmod +x install.sh
+sudo ./install.sh
+```
+
+The main installer performs the following operations:
+
+1. Installs build tools, SoapySDR development files, SoapySDR utilities, and GNU Radio.
+2. Detects the host architecture and installs the matching HAROGIC HTRA API libraries.
+3. Copies the architecture-specific libraries to `/usr/local/lib/`.
+4. Copies the complete HTRA SDK to `/opt/htraapi/`.
+5. Installs `htrausb.conf` and the HAROGIC udev rule.
+6. Builds and installs the SoapyHarogic module with CMake.
+7. Creates `/usr/bin/CalFile` as a symbolic link to the repository calibration directory.
+8. Refreshes the dynamic linker cache and runs SoapySDR verification commands.
+
+The installation modifies these system locations:
+
+```text
+/etc/htrausb.conf
+/etc/udev/rules.d/htra-cyusb.rules
+/opt/htraapi/
+/usr/local/lib/
+/usr/local/lib/SoapySDR/
+/usr/bin/CalFile
+```
+
+## Verify the installation
+
+### Display SoapySDR information
+
+```bash
+SoapySDRUtil --info
+```
+
+### Find a HAROGIC receiver
+
 ```bash
 SoapySDRUtil --find="driver=harogic"
 ```
 
-You should see output similar to this:
+A successful result contains the HAROGIC driver, device label, and serial number, for example:
 
+```text
+Found device 0
+  driver = harogic
+  label  = Harogic <serial number>
+  serial = <serial number>
 ```
-Found 1 device(s)
-  0: driver=Harogic, label=Harogic 313**********, serial=3132***********
-```
 
-## ⚠️ Important Usage Notes
-
-### 🎛️ Gain Control and Error -12 (IF Overflow)
-
-The primary gain setting for this device is the **Reference Level (REF)**. This is a critical parameter that tells the device's automatic gain control (AGC) the expected power level of the signal you want to receive. Setting this correctly is essential to avoid errors and get good performance.
-
-The Reference Level works somewhat counter-intuitively:
-
-- **Set a HIGH value (e.g., 7 dBm, -20 dBm)** when you are receiving **STRONG** signals. This tells the AGC to apply less gain (more attenuation) to prevent the internal electronics from being overloaded.
-    
-- **Set a LOW value (e.g., -30 dBm, -50 dBm)** when you are receiving **WEAK** signals. This tells the AGC to apply more gain to make the signal visible.
-    
-
-**What is Error -12?**  
-If the device's internal amplifiers or ADC are saturated by a signal that is too strong for the current gain setting, the hardware will report an **IF Overflow** (error code -12).
-
-With the current driver, this is handled as a non-fatal warning. You will see a `D` (for Dropped/Distorted packet) in your console log, and the stream will continue, but the data will be clipped and unusable.
-
-💡 **How to fix IF Overflow (`D` spam):** If you see `D`'s in your log or your signal looks "flat-topped" in the waterfall, it means the gain is too high. **Increase the Reference Level** (e.g., from -70 to -50) until the overflow stops.
-
-A good starting point for the Reference Level is typically between **-10 dBm and -30 dBm**. Adjust it based on your antenna and the strength of the signals in your environment.
-
-### 🔢 Sample Format
-
-The device can stream samples in multiple native integer formats. This driver handles the conversion to complex floats for the host application automatically. For best performance and quality, you can select the native format explicitly.
-
-💡 **The Sweet Spot**: For most use cases, **`CS16` is the recommended format**. It provides an excellent balance of high dynamic range and manageable USB bandwidth, making it the most versatile and stable option.
-
-- **`CS32` (Complex Signed 32-bit Integer)**: 📊 Offers the highest theoretical dynamic range. However, it requires significantly more USB bandwidth and CPU processing, which may not provide a noticeable visual improvement over `CS16` in many scenarios. Use this for specialized, high-precision measurements.
-- **`CS16` (Complex Signed 16-bit Integer)**: 🎯 **(Recommended)** The best all-around choice. It provides great dynamic range and is stable across a wide range of sample rates.
-- **`CS8` (Complex Signed 8-bit Integer)**: ⚡️ Best for conserving USB bandwidth, especially at very high sample rates. However, it has the lowest dynamic range, which can make it harder to see weak signals next to strong ones.
-- **`CF32` (Complex Float 32-bit)**: ⚠️ This format is **not supported** by the hardware in IQ streaming mode. If selected, the driver will log a warning and safely fall back to `CS16`.
-
-By default (`AUTO` mode), the driver will select `CS8` for sample rates **> 60 MS/s** for stability, and `CS16` for rates **<= 60 MS/s**. You can override this behavior using the `native_format` stream argument.
-
-## SoapyHarogic Driver Options
-
-This document outlines all the configurable options for the SoapyHarogic driver, for use in applications like GQRX, SDR++, GNU Radio, or via the command line with tools like `SoapySDRUtil`.
-
-### Device Arguments
-
-These arguments are used to find and select a specific Harogic device. They are entered in the "Device Arguments" field in GRC, GQRX, or as part of the device string.
-
-|Argument Key|Example Value|Description|
-|---|---|---|
-|`driver`|`harogic`|**(Required)** This tells SoapySDR to load the Harogic driver.|
-|`serial`|`313251180036001A`|**(Optional)** The unique serial number of the device. Use this if you have multiple Harogic devices connected and need to select a specific one. If omitted, the first device found will be used.|
-|`label`|`Harogic 3132...`|**(Read-Only)** A human-readable name for the device, automatically generated by the driver. You can use this to identify the device but cannot set it as an argument.|
-
-**Example Device String:** `driver=harogic,serial=313251180036001A`
-
----
-
-### Stream Arguments
-
-These arguments configure the data stream itself and are typically set once before the stream is activated. They should be placed in the **"Stream Arguments"** field in GRC or SDR++.
-
-|Argument Key|Example Value|Default|Description|
-|---|---|---|---|
-|`native_format`|`CS16`|`AUTO`|Selects the data format requested from the hardware. **`AUTO`** selects CS8/CS16 based on the sample rate (> 60 MS/s = CS8). **`CS32`**, **`CS16`**, or **`CS8`** forces that specific format. `CF32` is not supported and will fall back to `CS16`.|
-
-**Example Stream Arguments String:** `native_format=CS16`
-
----
-
-### Channel Settings (RF and Gain)
-
-These settings control the RF front-end and can usually be adjusted while the stream is active. They appear as sliders, dropdowns, or text boxes in SDR applications.
-
-#### Antennas
-
-The active antenna port can be selected from a dropdown menu.
-
-- **Available Options:** `External`, `Internal`, `ANT`, `T/R`, `SWR`, `INT`
-    
-#### Gain Elements
-
-The Harogic device uses a multi-stage gain system controlled by three separate elements.
-
-|Gain Element|Type|Range|Description|
-|---|---|---|---|
-|`REF`|Integer|-50 to 23 [dBm]|**Reference Level.** This is the primary gain control. It sets the target power level for the top of the ADC's range. **Use a high value for strong signals to prevent overflow.**|
-|`PREAMP`|Boolean|On/Off|Toggles the front-end low-noise preamplifier. `On` (1.0) enables it for better sensitivity on weak signals. `Off` (0.0) disables it.|
-|`IF_AGC`|Boolean|On/Off|Toggles the Intermediate Frequency (IF) Automatic Gain Control.|
-
-#### Other RF Settings
-
-|Setting Key|Type|Options / Range|Description|
-|---|---|---|---|
-|`gain_strategy`|String|`Low Noise`, `High Linearity`|Optimizes the internal gain distribution. `Low Noise` is best for weak signals. `High Linearity` is better for environments with strong signals to prevent intermodulation.|
-|`lo_mode`|String|`Auto`, `Speed`, `Spurs`, `Phase Noise`|Controls the Local Oscillator (LO) optimization strategy. `Auto` is recommended for general use. Other modes trade between tuning speed, spurious signal rejection, and phase noise performance.|
-
----
-
-## 🎮 Usage
-
-### 📊 GQRX
-
-GQRX provides an intuitive interface for controlling the device. 🖥️
-
-1. 🚀 Open GQRX.
-2. ⚙️ Click the "Configure I/O devices" button (or go to `File -> I/O devices`).
-3. 📋 In the "Device" dropdown, select your Harogic device. It should appear with its label.
-4. ✍️ In the **"Device String"** field, you can add your stream argument. For example, to force 16-bit samples, your device string might look like this: `driver=harogic,serial=3132...,native_format=CS16`.
-5. 🎛️ Go to the **"Input Controls"** tab on the right-hand side to adjust gains.
-
-### 🔬 GNU Radio Companion
-
-Use the **Soapy Source** block for full control. 🎛️
-
-1. ➕ Add a "Soapy Source" block to your flowgraph.
-2. 🖱️ Double-click the block to open its properties.
-3. 📋 In the **General** tab:
-    - **Device Arguments**: Set this to `driver=harogic`.
-    - **Stream Arguments**: Set this to `native_format=CS16` (or `CS32`, `CS8`).
-4. 📻 In the **RF Options** tab:
-    - **Gain (dB)**: This controls the main **REF** (Reference Level) gain.
-    - **Antenna**: Select your desired antenna (e.g., `ANT`).
-    - **Settings**: This field is used to control other named settings as a comma-separated list of key=value pairs:
-        - 🔄 To set LO Mode to "Spurs": `lo_mode=Spurs`
-        - 🎯 To set Gain Strategy: `gain_strategy="High Linearity"`
-
----
-
-## ⚡ Performance Tuning and Testing
-
-High-speed SDR streaming (over 60 MS/s) is demanding on the host computer's USB subsystem and CPU. If you experience stream interruptions (often shown as `T` for timeout, `O` for overflow, or fatal errors in the console), you may need to tune your system for performance. The timeouts (`T`) are a classic symptom of this.
-
-### Performance Tuning Script
-
-This repository includes a Bash script, `performance_mode.sh`, to help apply common system optimizations. **Running this script is highly recommended if you see `T`'s in your log.**
-
-**Usage:**
+### Probe the device
 
 ```bash
-# Run the script with sudo
+SoapySDRUtil --probe="driver=harogic"
+```
+
+To select one receiver when multiple units are connected:
+
+```bash
+SoapySDRUtil --probe="driver=harogic,serial=<device-serial>"
+```
+
+### Check the HTRA API library
+
+```bash
+ldconfig -p | grep htraapi
+ls -l /usr/local/lib/libhtraapi.so*
+```
+
+If the udev rules were installed while the receiver was already connected, unplug and reconnect the USB cable before testing again.
+
+## Manual installation
+
+Use this procedure when the automatic installer stops at a specific stage.
+
+### 1. Install the base dependencies
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+    build-essential \
+    cmake \
+    libsoapysdr-dev \
+    soapysdr-tools \
+    gnuradio
+```
+
+### 2. Install the HAROGIC HTRA SDK
+
+```bash
+cd htra_sdk
+chmod +x install_htraapi_lib.sh
+sudo ./install_htraapi_lib.sh
+cd ..
+```
+
+The SDK installer:
+
+- detects `x86_64` or `aarch64/arm64`;
+- selects the highest-sorted `libhtraapi.so.*` file in the matching architecture directory;
+- copies the architecture libraries to `/usr/local/lib/`;
+- copies the complete SDK to `/opt/htraapi/`;
+- creates the required `libhtraapi.so` and `libusb-1.0.so` symbolic links;
+- installs the USB configuration and udev rule;
+- runs `ldconfig` and reloads udev rules.
+
+### 3. Build the SoapyHarogic module
+
+```bash
+cd soapy-htra
+rm -rf build
+cmake -S . -B build
+cmake --build build --parallel "$(nproc)"
+sudo cmake --install build
+sudo ldconfig
+cd ..
+```
+
+### 4. Configure the calibration path
+
+From the repository root:
+
+```bash
+sudo rm -rf /usr/bin/CalFile
+sudo ln -s "$(pwd)/CalFile" /usr/bin/CalFile
+ls -ld /usr/bin/CalFile
+```
+
+## GNU Radio examples
+
+The included flowgraphs use the HAROGIC receiver as an IQ source through the SoapySDR interface. Open a `.grc` file with GNU Radio Companion:
+
+```bash
+gnuradio-companion soapy-htra/examples/basic_example/harogic_example.grc
+```
+
+Other flowgraphs can be opened in the same way:
+
+```bash
+gnuradio-companion soapy-htra/examples/AM_demod/AM_demod.grc
+gnuradio-companion soapy-htra/examples/FM_demod/FM_demod.grc
+gnuradio-companion soapy-htra/examples/QPSK_demod/QPSK_demod.grc
+gnuradio-companion soapy-htra/examples/QAM_demod/QAM_demod.grc
+gnuradio-companion soapy-htra/examples/WLAN/WLAN_demod.grc
+gnuradio-companion soapy-htra/examples/ADS-B/ADSB_demod.grc
+```
+
+Before running a flowgraph, check its center frequency, sample rate, reference level, antenna port, resampling ratio, and demodulator parameters.
+
+### Example overview
+
+| Example | Processing overview | Reference signal used in the guide |
+| --- | --- | --- |
+| Basic receiver | HAROGIC Soapy source with spectrum/time-domain visualization | User-defined |
+| AM | Rational resampling, spectrum and IQ display, AM demodulation, audio output | 1 GHz, -20 dBm, 1 kHz sine modulation, 50% depth |
+| FM | Rational resampling, FM demodulation, spectrum/time display, audio output | 1 GHz, -20 dBm, 3 kHz sine modulation, 75 kHz deviation |
+| QPSK | Resampling, root-raised-cosine filtering, symbol synchronization, constellation decoding | QPSK-modulated RF input |
+| 16-QAM | Resampling, RRC filtering, AGC, symbol synchronization, carrier recovery, constellation display | 1 GHz, -80 dBm, 500 kSymbols/s, RRC roll-off 0.35 |
+| IEEE 802.11a WLAN | Packet detection, short/long synchronization, FFT, equalization, MAC decoding | 2.412 GHz, -40 dBm, 12 Mb/s, QPSK with BCC 1/2 |
+| ADS-B 1090ES | Frame detection, pulse demodulation, message decoding, ZMQ publication, web-map display | 1090 MHz ADS-B |
+
+The demodulation examples are reference flowgraphs. Their parameters may need to be adjusted for the connected receiver model, RF environment, signal level, and GNU Radio version.
+
+## WLAN extension
+
+The WLAN installer builds and installs `gr-foo` and `gr-ieee802-11`, then sets the System V shared-memory maximum to 2 GiB.
+
+Run the main SoapyHarogic installation first. Then execute:
+
+```bash
+cd soapy-htra/examples/WLAN
+chmod +x install_wifi.sh
+sudo ./install_wifi.sh
+```
+
+The script must be run with `sudo`. It installs dependencies, clones the two GNU Radio out-of-tree modules when they are not already present, rebuilds them from clean `build` directories, and updates `/etc/sysctl.conf` with:
+
+```text
+kernel.shmmax=2147483648
+```
+
+Restart GNU Radio Companion after installation.
+
+Decoded WLAN packets can be exported to Wireshark or saved as a PCAP file when the flowgraph is configured accordingly.
+
+## ADS-B extension and web map
+
+The ADS-B installer builds `gr-adsb`, installs the GNU Radio module, creates a Python virtual environment for the bundled web application, and installs compatible Flask/Socket.IO dependencies.
+
+> Run this installer as a normal user. Do **not** run it with `sudo`; the script calls `sudo` only for the operations that require elevated privileges.
+
+```bash
+cd soapy-htra/examples/ADS-B
+chmod +x install_adsb.sh
+./install_adsb.sh
+```
+
+By default, the installer checks out the `maint-3.10` branch. You can override the branch or build parallelism before running it:
+
+```bash
+GR_ADSB_REF=maint-3.10 BUILD_JOBS=4 ./install_adsb.sh
+```
+
+Open and run the ADS-B flowgraph:
+
+```bash
+gnuradio-companion ADSB_demod.grc
+```
+
+In another terminal, start the web server:
+
+```bash
+cd gr-adsb/web
+source venv/bin/activate
+python3 webserver.py
+```
+
+Then open:
+
+```text
+http://127.0.0.1:5000
+```
+
+The decoded ADS-B messages can include the ICAO address, callsign, altitude, speed, heading, and position. The web interface displays available aircraft positions on a map in real time.
+
+## Driver configuration
+
+### Device arguments
+
+| Key | Example | Description |
+| --- | --- | --- |
+| `driver` | `harogic` | Selects the HAROGIC SoapySDR driver. |
+| `serial` | `5430500300470031` | Selects a specific receiver when multiple devices are connected. |
+| `label` | `Harogic ...` | Read-only label returned during discovery. |
+
+Example:
+
+```text
+driver=harogic,serial=5430500300470031
+```
+
+### Stream arguments
+
+| Key | Values | Default | Description |
+| --- | --- | --- | --- |
+| `native_format` | `AUTO`, `CS32`, `CS16`, `CS8`, `CF32` | `AUTO` | Requests the native IQ data format. `CF32` is not supported by HTRA IQ streaming and falls back to `CS16`. |
+
+Recommended general-purpose setting:
+
+```text
+native_format=CS16
+```
+
+In `AUTO` mode, the current driver selects:
+
+- `CS16` at sample rates up to and including 60 MS/s;
+- `CS8` above 60 MS/s to reduce USB bandwidth.
+
+### RF ports
+
+The current driver exposes these receive-port names:
+
+```text
+External
+Internal
+ANT
+T/R
+SWR
+INT
+```
+
+Available physical ports depend on the connected HAROGIC model.
+
+### Gain controls
+
+| Element | Current driver range | Description |
+| --- | --- | --- |
+| `REF` | `-100` to `+7` dBm | Receiver reference level and primary front-end level control. |
+| `PREAMP` | `0` or `1` | Enables automatic preamplifier use or forces it off. |
+| `IF_AGC` | `0` or `1` | Enables or disables IF automatic gain control. |
+
+For strong signals, increase the reference level to reduce internal gain and avoid overload. For weak signals, use a lower reference level to increase sensitivity.
+
+### Device-specific settings
+
+| Key | Values | Description |
+| --- | --- | --- |
+| `gain_strategy` | `Low Noise`, `High Linearity` | Selects sensitivity-oriented or strong-signal-oriented gain distribution. |
+| `lo_mode` | `Auto`, `Speed`, `Spurs`, `Phase Noise` | Selects the local-oscillator optimization strategy. |
+
+Example GNU Radio settings string:
+
+```text
+gain_strategy=High Linearity,lo_mode=Spurs
+```
+
+## Performance tuning
+
+High sample rates place heavy load on the USB controller, memory subsystem, and CPU. The included interactive script can apply several temporary performance optimizations:
+
+```bash
+cd soapy-htra
+chmod +x performance_mode.sh
 sudo ./performance_mode.sh
 ```
 
-The script provides an interactive menu to:
+The menu can:
 
-1. **Set CPU Governor to 'performance'**: Prevents CPU from down-clocking, reducing latency.
-2. **Disable USB Autosuspend**: Stops the kernel from trying to power-save the active SDR.
-3. **Increase USB-FS Memory Buffer**: Allocates more RAM for USB transfers, critical for high data rates.
-4. **Set USB 3.0 IRQ Affinity**: Pins the USB controller's interrupts to a specific CPU core to reduce jitter.
-5. **Disable DRM KMS Polling**: Reduces display driver-related system load.
-    
-You can apply all tweaks at once or individually. A "Revert to Defaults" option is also available. It is recommended to apply these tweaks before running high-bandwidth applications.
+- set all CPU cores to the `performance` governor;
+- disable USB autosuspend;
+- increase the usbfs memory limit to 1000 MB;
+- pin the first detected xHCI interrupt to CPU core 1;
+- disable DRM KMS polling;
+- apply all changes together;
+- revert selected settings toward common power-saving defaults.
 
-🎉 **Happy SDR-ing!** If you encounter any issues, please open an issue on GitHub. 🐛➡️🔧
+Most changes are runtime settings and can be reset by rebooting. The script also notes that IRQ affinity and the usbfs memory setting are best restored by a reboot.
 
+## Troubleshooting
 
+### No HAROGIC device is found
 
+1. Confirm that the device is powered and connected through USB 3.0.
+2. In a virtual machine, confirm that the USB device is attached to the guest and that USB 3.1/3.2 compatibility is selected.
+3. Reload the udev rules and reconnect the device:
 
+   ```bash
+   sudo udevadm control --reload-rules
+   sudo udevadm trigger
+   ```
+
+4. Check USB enumeration and SoapySDR discovery:
+
+   ```bash
+   lsusb
+   SoapySDRUtil --find="driver=harogic"
+   ```
+
+### The SoapyHarogic module is not listed
+
+```bash
+SoapySDRUtil --info
+find /usr/local/lib -type f -iname '*Harogic*' -o -iname '*harogic*'
+```
+
+Rebuild from a clean CMake directory when necessary:
+
+```bash
+cd soapy-htra
+rm -rf build
+cmake -S . -B build
+cmake --build build --parallel "$(nproc)"
+sudo cmake --install build
+sudo ldconfig
+```
+
+### The HTRA API library cannot be loaded
+
+```bash
+ldconfig -p | grep htraapi
+ls -l /usr/local/lib/libhtraapi.so*
+ls -l /opt/htraapi/lib/x86_64/libhtraapi.so* 2>/dev/null
+ls -l /opt/htraapi/lib/aarch64/libhtraapi.so* 2>/dev/null
+```
+
+Run the SDK installer again if the links are missing.
+
+### Calibration files are not found
+
+```bash
+ls -ld /usr/bin/CalFile
+readlink -f /usr/bin/CalFile
+```
+
+If the repository was moved, recreate the link from the new repository root:
+
+```bash
+sudo rm -rf /usr/bin/CalFile
+sudo ln -s "$(pwd)/CalFile" /usr/bin/CalFile
+```
+
+### IF overflow or repeated `D` messages
+
+An IF overflow indicates that the received signal is too strong for the current level configuration. Increase `REF`—for example, change it from `-50` dBm toward `-30` dBm—until the overflow stops. Also consider disabling the preamplifier or selecting `High Linearity` gain strategy.
+
+### Timeouts, overflows, or interrupted IQ streaming
+
+- Use a direct USB 3.0 port rather than an unpowered hub.
+- Close other high-bandwidth USB applications.
+- Try `native_format=CS16`, or `CS8` at very high sample rates.
+- Reduce the sample rate.
+- Run `performance_mode.sh` before starting the flowgraph.
+- Confirm that the VM or host USB controller is operating in USB 3.x mode.
+
+### WLAN installer permission error
+
+Run it with `sudo`:
+
+```bash
+sudo ./install_wifi.sh
+```
+
+### ADS-B installer rejects root execution
+
+Run it without `sudo`:
+
+```bash
+./install_adsb.sh
+```
+
+## License
+
+The SoapyHarogic driver is distributed under the **GNU Lesser General Public License v2.1 or later**. See [`soapy-htra/LICENSE`](soapy-htra/LICENSE) for the complete license text.
