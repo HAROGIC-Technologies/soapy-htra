@@ -876,12 +876,14 @@ blocks:
     bandwidth1: '0'
     center_freq0: freq
     center_freq1: '0'
-    comment: ''
+    comment: "If your device is connected via USB, \nenter \u201Cinterface=USB,device=0\u201D\
+      \ in the \u201CDevice arguments\u201D field; \nif it is connected via Ethernet,\
+      \ \nenter \u201Cinterface=ETH,ip=192.168.1.100\u201D."
     dc_offset0: '0'
     dc_offset1: '0'
     dc_removal0: 'False'
     dc_removal1: 'True'
-    dev_args: ''
+    dev_args: interface=USB,device=0
     driver: harogic
     freq_correction0: '0'
     freq_correction1: '0'
@@ -911,14 +913,14 @@ connections:
 - [blocks_complex_to_mag_0, '0', blocks_divide_xx_0, '0']
 - [blocks_complex_to_mag_squared_0, '0', blocks_moving_average_xx_0, '0']
 - [blocks_conjugate_cc_0, '0', blocks_multiply_xx_0, '1']
-- [blocks_delay_0, '0', ieee802_11_sync_long_0, '1']
+- [blocks_delay_0, '0', ieee802_11_sync_long_0, '0']
 - [blocks_delay_0_0, '0', blocks_conjugate_cc_0, '0']
 - [blocks_delay_0_0, '0', ieee802_11_sync_short_0, '0']
-- [blocks_divide_xx_0, '0', ieee802_11_sync_short_0, '2']
+- [blocks_divide_xx_0, '0', ieee802_11_sync_short_0, '1']
 - [blocks_divide_xx_0, '0', qtgui_time_sink_x_0, '0']
 - [blocks_moving_average_xx_0, '0', blocks_divide_xx_0, '1']
 - [blocks_moving_average_xx_1, '0', blocks_complex_to_mag_0, '0']
-- [blocks_moving_average_xx_1, '0', ieee802_11_sync_short_0, '1']
+- [blocks_moving_average_xx_1, '0', ieee802_11_sync_short_0, '2']
 - [blocks_multiply_xx_0, '0', blocks_moving_average_xx_1, '0']
 - [blocks_stream_to_vector_0, '0', fft_vxx_0, '0']
 - [fft_vxx_0, '0', ieee802_11_frame_equalizer_0, '0']
@@ -929,7 +931,7 @@ connections:
 - [ieee802_11_frame_equalizer_0, symbols, pdu_pdu_to_tagged_stream_0, pdus]
 - [ieee802_11_sync_long_0, '0', blocks_stream_to_vector_0, '0']
 - [ieee802_11_sync_short_0, '0', blocks_delay_0, '0']
-- [ieee802_11_sync_short_0, '0', ieee802_11_sync_long_0, '0']
+- [ieee802_11_sync_short_0, '0', ieee802_11_sync_long_0, '1']
 - [pdu_pdu_to_tagged_stream_0, '0', qtgui_const_sink_x_0, '0']
 - [rational_resampler_xxx_0, '0', blocks_complex_to_mag_squared_0, '0']
 - [rational_resampler_xxx_0, '0', blocks_delay_0_0, '0']

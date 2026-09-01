@@ -20,18 +20,129 @@
 
 #include "HarogicDevice.hpp"
 
+#include <arpa/inet.h>
+#include <cctype>
+#include <cstdio>
+#include <initializer_list>
+
 // Define constants for clarity
 #define RESOLTRIG 60e6  // Sample rate threshold for auto-selecting CS8
 #define MIN_FREQ 9e3
 #define MAX_FREQ 40e9
 
+namespace {
+
+constexpr uint16_t HTRA_ETH_REMOTE_PORT = 5000;
+constexpr int32_t HTRA_ETH_READ_TIMEOUT_MS = 5000;
+constexpr const char* HAROGIC_DRIVER_REVISION = "custom-source-usb-eth-1.0";
+
+bool deviceOpenSucceeded(const int status)
+{
+    // Preserve the original driver's handling of -49 as a usable open result.
+    return status == 0 || status == -49;
+}
+
+std::string lowerCopy(std::string value)
+{
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return value;
+}
+
+std::string getFirstArg(const SoapySDR::Kwargs& args,
+                        std::initializer_list<const char*> keys)
+{
+    for (const char* key : keys) {
+        const auto it = args.find(key);
+        if (it != args.end() && !it->second.empty()) return it->second;
+    }
+    return {};
+}
+
+std::string normalizeInterface(const std::string& value)
+{
+    const std::string normalized = lowerCopy(value);
+    if (normalized.empty() || normalized == "usb") return "USB";
+    if (normalized == "eth" || normalized == "ethernet") return "ETH";
+    throw std::invalid_argument("interface must be USB or ETH");
+}
+
+int parseDeviceNumber(const std::string& value, const int fallback = 0)
+{
+    if (value.empty()) return fallback;
+    size_t pos = 0;
+    const int number = std::stoi(value, &pos, 10);
+    if (pos != value.size() || number < 0 || number > 255) {
+        throw std::invalid_argument("device number must be in range 0..255");
+    }
+    return number;
+}
+
+bool ipv4ToBytes(const std::string& ip, uint8_t out[4])
+{
+    in_addr address{};
+    if (::inet_pton(AF_INET, ip.c_str(), &address) != 1) return false;
+    std::memcpy(out, &address, 4);
+    return true;
+}
+
+std::string ipv4ToString(const uint8_t ip[4])
+{
+    char buffer[INET_ADDRSTRLEN] = {};
+    in_addr address{};
+    std::memcpy(&address, ip, 4);
+    const char* result = ::inet_ntop(AF_INET, &address, buffer, sizeof(buffer));
+    return result ? std::string(result) : std::string();
+}
+
+std::string uidToString(const uint64_t uid)
+{
+    char serial[64] = {};
+    std::snprintf(serial, sizeof(serial), "%" PRIX64, uid);
+    return serial;
+}
+
+BootProfile_TypeDef makeBootProfile(const std::string& physicalInterface,
+                                    const std::string& ipAddress,
+                                    const bool streaming)
+{
+    BootProfile_TypeDef profile = {};
+
+    if (physicalInterface == "ETH") {
+        profile.PhysicalInterface = PhysicalInterface_TypeDef::ETH;
+        profile.DevicePowerSupply = DevicePowerSupply_TypeDef::Others;
+        profile.ETH_IPVersion = IPVersion_TypeDef::IPv4;
+        if (!ipv4ToBytes(ipAddress, profile.ETH_IPAddress)) {
+            throw std::invalid_argument("invalid IPv4 address: " + ipAddress);
+        }
+        profile.ETH_RemotePort = HTRA_ETH_REMOTE_PORT;
+        profile.ETH_ReadTimeOut = HTRA_ETH_READ_TIMEOUT_MS;
+    } else {
+        profile.PhysicalInterface = PhysicalInterface_TypeDef::USB;
+        // Keep the original USB behavior unchanged: discovery/capability queries
+        // use USBPortOnly, while the active IQ stream uses USBPortAndPowerPort.
+        profile.DevicePowerSupply = streaming
+            ? DevicePowerSupply_TypeDef::USBPortAndPowerPort
+            : DevicePowerSupply_TypeDef::USBPortOnly;
+    }
+
+    return profile;
+}
+
+} // namespace
+
 SoapyHarogic::SoapyHarogic(const SoapySDR::Kwargs &args) :
     _dev_index(-1),
+    _physical_interface("USB"),
+    _device_number(0),
+    _ip_address("192.168.1.100"),
     _dev_handle(nullptr),
     _profile{},
     _mtu(0),
     _rx_thread_running(false),
     _ring_buffer(RING_BUFFER_SIZE),
+    _overflow_flag(false),
     _sample_rate(0.0),
     _center_freq(100e6),
     _ref_level(-10),
@@ -39,40 +150,134 @@ SoapyHarogic::SoapyHarogic(const SoapySDR::Kwargs &args) :
     _preamp_mode(AutoOn),
     _if_agc(false),
     _lo_mode(LOOpt_Auto),
-    _overflow_flag(false),
     _native_format_selection("AUTO")
 {
     if (args.count("serial")) _serial = args.at("serial");
 
-    BootProfile_TypeDef profile = {};
-    profile.PhysicalInterface = PhysicalInterface_TypeDef::USB;
-    profile.DevicePowerSupply = DevicePowerSupply_TypeDef::USBPortOnly;
+    const std::string interfaceArg = getFirstArg(args, {"interface", "physical_interface"});
+    const std::string deviceArg = getFirstArg(args, {"device", "device_number", "device_num", "index"});
+    const std::string ipArg = getFirstArg(args, {"ip", "ip_address", "address"});
 
-    void* dev_tmp;
-    BootInfo_TypeDef binfo;
-    for (int i = 0; i < 128; i++) {
-        int status = Device_Open(&dev_tmp, i, &profile, &binfo);
-        if (status != 0 && status != -49) break;
-        char serial_str[64];
-        snprintf(serial_str, sizeof(serial_str), "%" PRIX64, binfo.DeviceInfo.DeviceUID);
-        if (_serial.empty()) _serial = serial_str;
-        if (_serial == serial_str) {
-            _dev_index = i;
+    if (!interfaceArg.empty()) {
+        _physical_interface = normalizeInterface(interfaceArg);
+    } else if (!ipArg.empty()) {
+        _physical_interface = "ETH";
+    } else {
+        _physical_interface = "USB"; // Backward-compatible default.
+    }
+
+    _device_number = parseDeviceNumber(deviceArg, 0);
+    if (!ipArg.empty()) _ip_address = ipArg;
+
+    void* dev_tmp = nullptr;
+    BootInfo_TypeDef binfo{};
+
+    if (_physical_interface == "USB") {
+        BootProfile_TypeDef profile = makeBootProfile("USB", _ip_address, false);
+
+        if (!deviceArg.empty()) {
+            const int status = Device_Open(&dev_tmp, _device_number, &profile, &binfo);
+            if (!deviceOpenSucceeded(status)) {
+                throw std::runtime_error("Harogic USB device " +
+                                         std::to_string(_device_number) +
+                                         " could not be opened, status=" +
+                                         std::to_string(status));
+            }
+
+            _dev_index = _device_number;
             _dev_info = binfo.DeviceInfo;
+            const std::string serial = uidToString(binfo.DeviceInfo.DeviceUID);
+            if (_serial.empty()) _serial = serial;
             Device_Close(&dev_tmp);
-            break;
+
+            if (!_serial.empty() && _serial != serial) {
+                throw std::runtime_error("USB device number " +
+                                         std::to_string(_device_number) +
+                                         " does not match requested serial " + _serial);
+            }
+        } else {
+            // Preserve the original behavior: scan USB device numbers and select
+            // either the requested serial or the first available receiver.
+            for (int i = 0; i < 128; i++) {
+                binfo = {};
+                const int status = Device_Open(&dev_tmp, i, &profile, &binfo);
+                if (!deviceOpenSucceeded(status)) break;
+
+                const std::string serial = uidToString(binfo.DeviceInfo.DeviceUID);
+                if (_serial.empty()) _serial = serial;
+                if (_serial == serial) {
+                    _dev_index = i;
+                    _device_number = i;
+                    _dev_info = binfo.DeviceInfo;
+                    Device_Close(&dev_tmp);
+                    dev_tmp = nullptr;
+                    break;
+                }
+
+                Device_Close(&dev_tmp);
+                dev_tmp = nullptr;
+            }
         }
+
+        if (_dev_index == -1) {
+            throw std::runtime_error("Harogic USB device not found for serial: " + _serial);
+        }
+    } else {
+        // If ETH is explicitly selected with only a serial number, try to resolve
+        // the IP address from the HTRA network discovery API first.
+        if (ipArg.empty() && !_serial.empty()) {
+            uint8_t count = 0;
+            NetworkDeviceInfo_TypeDef networkInfo[64] = {};
+            uint8_t localIP[4] = {};
+            uint8_t localMask[4] = {};
+            if (Device_GetNetworkDeviceList(&count, networkInfo, localIP, localMask) == 0) {
+                for (uint8_t i = 0; i < count; ++i) {
+                    if (uidToString(networkInfo[i].DeviceUID) == _serial) {
+                        _ip_address = ipv4ToString(networkInfo[i].IPAddress);
+                        break;
+                    }
+                }
+            }
+        }
+
+        BootProfile_TypeDef profile = makeBootProfile("ETH", _ip_address, false);
+        const int status = Device_Open(&dev_tmp, _device_number, &profile, &binfo);
+        if (!deviceOpenSucceeded(status)) {
+            throw std::runtime_error("Harogic ETH device at " + _ip_address +
+                                     " could not be opened, status=" +
+                                     std::to_string(status));
+        }
+
+        _dev_index = _device_number;
+        _dev_info = binfo.DeviceInfo;
+        const std::string serial = uidToString(binfo.DeviceInfo.DeviceUID);
+        if (_serial.empty()) _serial = serial;
         Device_Close(&dev_tmp);
+        dev_tmp = nullptr;
+
+        if (!_serial.empty() && _serial != serial) {
+            throw std::runtime_error("ETH device at " + _ip_address +
+                                     " does not match requested serial " + _serial);
+        }
     }
 
-    if (_dev_index == -1) throw std::runtime_error("Harogic device not found for serial: " + _serial);
-    SoapySDR_logf(SOAPY_SDR_INFO, "Found Harogic device: %s (Index %d)", _serial.c_str(), _dev_index);
+    const std::string deviceLocation = (_physical_interface == "USB")
+        ? std::string("device=") + std::to_string(_device_number)
+        : std::string("ip=") + _ip_address;
+    SoapySDR_logf(SOAPY_SDR_INFO,
+                  "Found Harogic device: %s via %s, %s",
+                  _serial.c_str(),
+                  _physical_interface.c_str(),
+                  deviceLocation.c_str());
 
-    // This block is for querying capabilities without holding the device open.
+    // Query capabilities without holding the device open.
+    BootProfile_TypeDef profile = makeBootProfile(_physical_interface, _ip_address, false);
     int status = Device_Open(&dev_tmp, _dev_index, &profile, &binfo);
-    if (status != 0 && status != -49) {
-        throw std::runtime_error("Failed to open device to query capabilities.");
+    if (!deviceOpenSucceeded(status)) {
+        throw std::runtime_error("Failed to open device to query capabilities, status=" +
+                                 std::to_string(status));
     }
+
     IQS_Profile_TypeDef default_profile;
     IQS_ProfileDeInit(&dev_tmp, &default_profile);
     for (int i = 0; i < 8; i++) {
@@ -100,6 +305,10 @@ SoapySDR::Kwargs SoapyHarogic::getHardwareInfo() const {
     info["serial"] = _serial;
     info["model"] = std::to_string(_dev_info.Model);
     info["hardware_version"] = std::to_string(_dev_info.HardwareVersion);
+    info["driver_revision"] = HAROGIC_DRIVER_REVISION;
+    info["interface"] = _physical_interface;
+    if (_physical_interface == "USB") info["device"] = std::to_string(_device_number);
+    else info["ip"] = _ip_address;
     return info;
 }
 size_t SoapyHarogic::getNumChannels(const int dir) const { return (dir == SOAPY_SDR_RX) ? 1 : 0; }
@@ -161,12 +370,19 @@ int SoapyHarogic::activateStream(SoapySDR::Stream *, const int, const long long,
     if (_rx_thread_running) return 0;
 
     try {
-        BootProfile_TypeDef bprofile = {};
-        bprofile.PhysicalInterface = PhysicalInterface_TypeDef::USB;
-        bprofile.DevicePowerSupply = DevicePowerSupply_TypeDef::USBPortAndPowerPort;
-        BootInfo_TypeDef binfo;
+        BootProfile_TypeDef bprofile = makeBootProfile(_physical_interface, _ip_address, true);
+        BootInfo_TypeDef binfo{};
         int ret = Device_Open(&_dev_handle, _dev_index, &bprofile, &binfo);
-        if (ret != 0 && ret != -49) throw std::runtime_error("Device_Open failed");
+        if (!deviceOpenSucceeded(ret)) {
+            throw std::runtime_error("Device_Open failed with code " + std::to_string(ret));
+        }
+
+        if (_physical_interface == "USB") {
+            SoapySDR_logf(SOAPY_SDR_INFO, "Opening stream via USB, device=%d", _device_number);
+        } else {
+            SoapySDR_logf(SOAPY_SDR_INFO, "Opening stream via ETH, ip=%s, port=%u",
+                          _ip_address.c_str(), static_cast<unsigned>(HTRA_ETH_REMOTE_PORT));
+        }
 
         IQS_ProfileDeInit(&_dev_handle, &_profile);
         _profile.Atten = -1;
@@ -463,26 +679,103 @@ void SoapyHarogic::_apply_settings() {
     }
 }
 
-static SoapySDR::KwargsList findHarogic(const SoapySDR::Kwargs &) {
+static SoapySDR::KwargsList findHarogic(const SoapySDR::Kwargs &args) {
     SoapySDR::KwargsList results;
-    BootProfile_TypeDef profile = {};
-    profile.PhysicalInterface = PhysicalInterface_TypeDef::USB;
-    profile.DevicePowerSupply = DevicePowerSupply_TypeDef::USBPortOnly;
-    void* dev;
-    BootInfo_TypeDef binfo;
-    for (int i = 0; i < 128; i++) {
-        int status = Device_Open(&dev, i, &profile, &binfo);
-        if (status != 0 && status != -49) break;
 
-        char serial[64];
-        snprintf(serial, sizeof(serial), "%" PRIX64, binfo.DeviceInfo.DeviceUID);
-        SoapySDR::Kwargs dev_info;
-        dev_info["serial"] = serial;
-        dev_info["label"] = "Harogic " + std::string(serial);
-        dev_info["driver"] = "Harogic";
-        results.push_back(dev_info);
-        Device_Close(&dev);
+    const std::string interfaceArg = getFirstArg(args, {"interface", "physical_interface"});
+    const std::string deviceArg = getFirstArg(args, {"device", "device_number", "device_num", "index"});
+    const std::string ipFilter = getFirstArg(args, {"ip", "ip_address", "address"});
+    const std::string serialFilter = getFirstArg(args, {"serial"});
+
+    std::string interfaceFilter;
+    if (!interfaceArg.empty()) interfaceFilter = normalizeInterface(interfaceArg);
+    else if (!ipFilter.empty()) interfaceFilter = "ETH";
+    else if (!deviceArg.empty()) interfaceFilter = "USB";
+
+    const bool searchUSB = interfaceFilter.empty() || interfaceFilter == "USB";
+    const bool searchETH = interfaceFilter.empty() || interfaceFilter == "ETH";
+
+    if (searchUSB) {
+        BootProfile_TypeDef profile = makeBootProfile("USB", "192.168.1.100", false);
+        void* dev = nullptr;
+        BootInfo_TypeDef binfo{};
+        const int requestedDevice = parseDeviceNumber(deviceArg, -1);
+
+        for (int i = 0; i < 128; i++) {
+            if (requestedDevice >= 0 && i != requestedDevice) continue;
+
+            binfo = {};
+            const int status = Device_Open(&dev, i, &profile, &binfo);
+            if (!deviceOpenSucceeded(status)) {
+                if (requestedDevice >= 0) break;
+                // Keep the original contiguous USB enumeration behavior.
+                break;
+            }
+
+            const std::string serial = uidToString(binfo.DeviceInfo.DeviceUID);
+            if (serialFilter.empty() || serialFilter == serial) {
+                SoapySDR::Kwargs dev_info;
+                dev_info["serial"] = serial;
+                dev_info["label"] = "Harogic USB " + serial;
+                dev_info["driver"] = "Harogic";
+                dev_info["interface"] = "USB";
+                dev_info["device"] = std::to_string(i);
+                results.push_back(dev_info);
+            }
+
+            Device_Close(&dev);
+            dev = nullptr;
+            if (requestedDevice >= 0) break;
+        }
     }
+
+    if (searchETH) {
+        uint8_t count = 0;
+        NetworkDeviceInfo_TypeDef networkInfo[64] = {};
+        uint8_t localIP[4] = {};
+        uint8_t localMask[4] = {};
+        bool matchedRequestedIP = false;
+
+        const int status = Device_GetNetworkDeviceList(&count, networkInfo, localIP, localMask);
+        if (status == 0) {
+            for (uint8_t i = 0; i < count; ++i) {
+                const std::string ip = ipv4ToString(networkInfo[i].IPAddress);
+                const std::string serial = uidToString(networkInfo[i].DeviceUID);
+
+                if (!ipFilter.empty() && ip != ipFilter) continue;
+                if (!serialFilter.empty() && serial != serialFilter) continue;
+
+                SoapySDR::Kwargs dev_info;
+                dev_info["serial"] = serial;
+                dev_info["label"] = "Harogic ETH " + serial + " (" + ip + ")";
+                dev_info["driver"] = "Harogic";
+                dev_info["interface"] = "ETH";
+                dev_info["ip"] = ip;
+                results.push_back(dev_info);
+                if (!ipFilter.empty() && ip == ipFilter) matchedRequestedIP = true;
+            }
+        } else if (interfaceFilter == "ETH") {
+            SoapySDR_logf(SOAPY_SDR_DEBUG,
+                          "Device_GetNetworkDeviceList returned %d", status);
+        }
+
+        // Direct IP operation should still be possible when UDP/broadcast network
+        // discovery is filtered by the host/network. Device_Open will validate it.
+        if (!ipFilter.empty() && !matchedRequestedIP) {
+            uint8_t parsed[4] = {};
+            if (!ipv4ToBytes(ipFilter, parsed)) {
+                throw std::invalid_argument("invalid IPv4 address: " + ipFilter);
+            }
+            SoapySDR::Kwargs dev_info;
+            dev_info["label"] = "Harogic ETH " + ipFilter;
+            dev_info["driver"] = "Harogic";
+            dev_info["interface"] = "ETH";
+            dev_info["ip"] = ipFilter;
+            if (!serialFilter.empty()) dev_info["serial"] = serialFilter;
+            results.push_back(dev_info);
+        }
+    }
+
     return results;
 }
 

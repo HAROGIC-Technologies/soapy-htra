@@ -292,29 +292,6 @@ blocks:
     coordinate: [816, 396.0]
     rotation: 0
     state: enabled
-- name: htra_source_0_0
-  id: htra_source
-  parameters:
-    affinity: ''
-    alias: ''
-    center_freq: center_freq
-    comment: ''
-    data_format: Complex16bit
-    decim_factor: DECIM_64
-    device_ip: 192.168.1.100
-    device_num: '0'
-    device_type: USB
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    ref_level: reference_level
-    sample_rate: sample_rate
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [96, 1396.0]
-    rotation: 0
-    state: disabled
 - name: qtgui_const_sink_x_0
   id: qtgui_const_sink_x
   parameters:
@@ -1045,12 +1022,14 @@ blocks:
     bandwidth1: '0'
     center_freq0: center_freq
     center_freq1: '0'
-    comment: ''
+    comment: "If your device is connected via USB, \nenter \u201Cinterface=USB,device=0\u201D\
+      \ in the \u201CDevice arguments\u201D field; \nif it is connected via Ethernet,\
+      \ \nenter \u201Cinterface=ETH,ip=192.168.1.100\u201D."
     dc_offset0: '0'
     dc_offset1: '0'
     dc_removal0: 'False'
     dc_removal1: 'True'
-    dev_args: ''
+    dev_args: interface=USB,device=0
     driver: harogic
     freq_correction0: '0'
     freq_correction1: '0'
@@ -1087,8 +1066,6 @@ connections:
 - [digital_symbol_sync_xx_0_0, '0', digital_costas_loop_cc_0_0, '0']
 - [digital_symbol_sync_xx_0_0, '0', qtgui_const_sink_x_0_0_0_0_0, '0']
 - [digital_symbol_sync_xx_0_1_0_0, '0', digital_costas_loop_cc_0_0_0, '0']
-- [htra_source_0_0, '0', qtgui_freq_sink_x_0_0, '0']
-- [htra_source_0_0, '0', rational_resampler_xxx_0_0, '0']
 - [rational_resampler_xxx_0_0, '0', root_raised_cosine_filter_0_0, '0']
 - [rational_resampler_xxx_0_0_1, '0', root_raised_cosine_filter_0_0_1, '0']
 - [root_raised_cosine_filter_0_0, '0', analog_agc2_xx_0_0, '0']

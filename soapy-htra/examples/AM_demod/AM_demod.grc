@@ -43,9 +43,9 @@ blocks:
     orient: QtCore.Qt.Horizontal
     rangeType: float
     start: '9000'
-    step: '100'
+    step: 1e6
     stop: '6300000000'
-    value: '1000000000'
+    value: 1e9
     widget: counter_slider
   states:
     bus_sink: false
@@ -124,7 +124,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [584, 468.0]
+    coordinate: [680, 452.0]
     rotation: 0
     state: enabled
 - name: audio_sink_0
@@ -141,7 +141,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1032, 452.0]
+    coordinate: [1128, 436.0]
     rotation: 0
     state: enabled
 - name: blocks_complex_to_float_0
@@ -157,7 +157,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [616, 336.0]
+    coordinate: [680, 328.0]
     rotation: 0
     state: enabled
 - name: blocks_multiply_const_vxx_0
@@ -175,7 +175,25 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [840, 452.0]
+    coordinate: [936, 436.0]
+    rotation: 0
+    state: enabled
+- name: dc_blocker_xx_0
+  id: dc_blocker_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: '4096'
+    long_form: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: cc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [568, 204.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0
@@ -256,7 +274,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [592, 188.0]
+    coordinate: [776, 180.0]
     rotation: 0
     state: enabled
 - name: qtgui_time_sink_x_0
@@ -353,7 +371,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [848, 556.0]
+    coordinate: [944, 540.0]
     rotation: 0
     state: enabled
 - name: qtgui_time_sink_x_0_0
@@ -450,7 +468,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [872, 324.0]
+    coordinate: [904, 316.0]
     rotation: 0
     state: enabled
 - name: rational_resampler_xxx_0
@@ -470,7 +488,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [320, 308.0]
+    coordinate: [304, 316.0]
     rotation: 0
     state: true
 - name: soapy_custom_source_0
@@ -486,12 +504,14 @@ blocks:
     bandwidth1: '0'
     center_freq0: center_freq
     center_freq1: '0'
-    comment: ''
+    comment: "If your device is connected via USB, \nenter \u201Cinterface=USB,device=0\u201D\
+      \ in the \u201CDevice arguments\u201D field; \nif it is connected via Ethernet,\
+      \ \nenter \u201Cinterface=ETH,ip=192.168.1.100\u201D."
     dc_offset0: '0'
     dc_offset1: '0'
     dc_removal0: 'False'
     dc_removal1: 'True'
-    dev_args: ''
+    dev_args: interface=USB,device=0
     driver: harogic
     freq_correction0: '0'
     freq_correction1: '0'
@@ -513,9 +533,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [64, 316.0]
+    coordinate: [24, 316.0]
     rotation: 0
-    state: true
+    state: enabled
 
 connections:
 - [analog_am_demod_cf_0, '0', blocks_multiply_const_vxx_0, '0']
@@ -523,9 +543,10 @@ connections:
 - [blocks_complex_to_float_0, '0', qtgui_time_sink_x_0_0, '0']
 - [blocks_complex_to_float_0, '1', qtgui_time_sink_x_0_0, '1']
 - [blocks_multiply_const_vxx_0, '0', audio_sink_0, '0']
+- [dc_blocker_xx_0, '0', qtgui_freq_sink_x_0, '0']
 - [rational_resampler_xxx_0, '0', analog_am_demod_cf_0, '0']
 - [rational_resampler_xxx_0, '0', blocks_complex_to_float_0, '0']
-- [rational_resampler_xxx_0, '0', qtgui_freq_sink_x_0, '0']
+- [rational_resampler_xxx_0, '0', dc_blocker_xx_0, '0']
 - [soapy_custom_source_0, '0', rational_resampler_xxx_0, '0']
 
 metadata:

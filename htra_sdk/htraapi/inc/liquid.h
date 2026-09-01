@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 //
-// Compile-time version numbers
+// Compile-time version numbers    编译时版本号
 //
 // LIQUID_VERSION = "X.Y.Z"
 // LIQUID_VERSION_NUMBER = (X*1000000 + Y*1000 + Z)
@@ -58,13 +58,13 @@ extern "C" {
 #define LIQUID_VERSION_NUMBER   1003002
 
 //
-// Run-time library version numbers
+// Run-time library version numbers      运行时库版本号
 //
 extern const char liquid_version[];
 const char * liquid_libversion(void);
 int liquid_libversion_number(void);
 
-// run-time library validation
+// run-time library validation      运行时库验证
 #define LIQUID_VALIDATE_LIBVERSION                                          \
   if (LIQUID_VERSION_NUMBER != liquid_libversion_number()) {                \
     fprintf(stderr,"%s:%u: ", __FILE__,__LINE__);                           \
@@ -96,7 +96,7 @@ LIQUID_DEFINE_COMPLEX(float,  liquid_float_complex);
 LIQUID_DEFINE_COMPLEX(double, liquid_double_complex);
 
 //
-// MODULE : agc (automatic gain control)
+// MODULE : agc (automatic gain control)      模块：自动增益控制
 //
 
 // available squelch modes
@@ -272,7 +272,7 @@ LIQUID_AGC_DEFINE_API(LIQUID_AGC_MANGLE_RRRF, float, float)
 
 
 //
-// MODULE : audio
+// MODULE : audio      模块：音频
 //   
 
 // CVSD: continuously variable slope delta
@@ -303,7 +303,7 @@ void cvsd_decode8(cvsd _q, unsigned char _data, float * _audio);
 
 
 //
-// MODULE : buffer
+// MODULE : buffer      模块：缓冲器
 //
 
 // circular buffer
@@ -408,7 +408,7 @@ LIQUID_CBUFFER_DEFINE_API(LIQUID_CBUFFER_MANGLE_CFLOAT, liquid_float_complex)
 #define LIQUID_WINDOW_MANGLE_CFLOAT(name) LIQUID_CONCAT(windowcf, name)
 
 // large macro
-//   WINDOW : name-mangling macro
+//   WINDOW : name-mangling macro     大宏窗口：名称mangling macro T : 数据类型
 //   T      : data type
 #define LIQUID_WINDOW_DEFINE_API(WINDOW,T)                                  \
                                                                             \
@@ -547,7 +547,7 @@ LIQUID_WDELAY_DEFINE_API(LIQUID_WDELAY_MANGLE_CFLOAT, liquid_float_complex)
 
 
 //
-// MODULE : channel
+// MODULE : channel     模块：频道
 //
 
 #define LIQUID_CHANNEL_MANGLE_CCCF(name) LIQUID_CONCAT(channel_cccf,name)
@@ -628,7 +628,7 @@ LIQUID_CHANNEL_DEFINE_API(LIQUID_CHANNEL_MANGLE_CCCF,
 
 
 //
-// time-varying multi-path channel
+// time-varying multi-path channel      时变多径信道
 //
 #define LIQUID_TVMPCH_MANGLE_CCCF(name) LIQUID_CONCAT(tvmpch_cccf,name)
 
@@ -692,7 +692,7 @@ LIQUID_TVMPCH_DEFINE_API(LIQUID_TVMPCH_MANGLE_CCCF,
 
 
 //
-// MODULE : dotprod (vector dot product) 
+// MODULE : dotprod (vector dot product)     模块：dotprod（矢量点积）
 //
 
 #define LIQUID_DOTPROD_MANGLE_RRRF(name) LIQUID_CONCAT(dotprod_rrrf,name)
@@ -782,7 +782,7 @@ LIQUID_DOTPROD_DEFINE_API(LIQUID_DOTPROD_MANGLE_CRCF,
                           liquid_float_complex)
 
 //
-// sum squared methods 
+// sum squared methods     平方和法
 //
 
 float liquid_sumsqf(float *      _v,
@@ -793,7 +793,7 @@ float liquid_sumsqcf(liquid_float_complex * _v,
 
 
 //
-// MODULE : equalization 
+// MODULE : equalization      模块：均衡
 //
 
 // least mean-squares (LMS)
@@ -1018,7 +1018,7 @@ LIQUID_EQRLS_DEFINE_API(LIQUID_EQRLS_MANGLE_CCCF, liquid_float_complex)
 
 
 //
-// MODULE : fec (forward error-correction)
+// MODULE : fec (forward error-correction)       模块：fec（前向纠错）
 //  
 
 // soft bit values
@@ -1203,7 +1203,7 @@ void fec_decode_soft(fec _q,
                      unsigned char * _msg_dec);
 
 //
-// Packetizer 
+// Packetizer     打包器
 //  
 
 // computes the number of encoded bytes after packetizing
@@ -1299,7 +1299,7 @@ int packetizer_decode_soft(packetizer            _p,
 
 
 //
-// interleaver 
+// interleaver     交织器
 //
 typedef struct interleaver_s * interleaver;
 
@@ -1353,7 +1353,7 @@ void interleaver_decode_soft(interleaver _q,
 
 
   
-// MODULE : fft (fast Fourier transform) 
+// MODULE : fft (fast Fourier transform)    模块：fft（快速傅立叶变换）
 //
 
 // type of transform
@@ -1469,7 +1469,7 @@ LIQUID_FFT_DEFINE_API(LIQUID_FFT_MANGLE_FLOAT,float,liquid_float_complex)
 
 
 //
-// spectral periodogram 
+// spectral periodogram  光谱周期图
 //
 
 #define LIQUID_SPGRAM_MANGLE_CFLOAT(name) LIQUID_CONCAT(spgramcf,name)
@@ -1626,7 +1626,7 @@ LIQUID_SPGRAM_DEFINE_API(LIQUID_SPGRAM_MANGLE_FLOAT,
                          float)
 
 //
-// asgram : ascii spectral periodogram 
+// asgram : ascii spectral periodogram   ascii谱周期图
 //
 
 #define LIQUID_ASGRAM_MANGLE_CFLOAT(name) LIQUID_CONCAT(asgramcf,name)
@@ -1712,7 +1712,7 @@ LIQUID_ASGRAM_DEFINE_API(LIQUID_ASGRAM_MANGLE_FLOAT,
                          float)
 
 //
-// spectral periodogram waterfall 
+// spectral periodogram waterfall   瀑布？
 //
 
 #define LIQUID_SPWATERFALL_MANGLE_CFLOAT(name) LIQUID_CONCAT(spwaterfallcf,name)
@@ -1836,11 +1836,11 @@ LIQUID_SPWATERFALL_DEFINE_API(LIQUID_SPWATERFALL_MANGLE_FLOAT,
 
 
 //
-// MODULE : filter 
+// MODULE : filter  滤波器
 //
 
 //
-// firdes: finite impulse response filter design 
+// firdes: finite impulse response filter design  有限脉冲响应滤波器设计
 //
 
 // prototypes
@@ -1868,7 +1868,7 @@ typedef enum {
     LIQUID_FIRFILT_RFARCSECH,   // flipped arc-hyperbolic secant
 } liquid_firfilt_type;
 
-// Design (root-)Nyquist filter from prototype  
+// Design (root-)Nyquist filter from prototype      从原型设计（根）奈奎斯特滤波器
 //  _type   : filter type (e.g. LIQUID_FIRFILT_RRC)
 //  _k      : samples/symbol,          _k > 1
 //  _m      : symbol delay,            _m > 0
@@ -1888,26 +1888,26 @@ extern const char * liquid_firfilt_type_str[LIQUID_FIRFILT_NUM_TYPES][2];
 // returns filter type based on input string
 int liquid_getopt_str2firfilt(const char * _str);
 
-// estimate required filter length given  
+// estimate required filter length given            估计给定的所需滤波器长度
 //  _df     :   transition bandwidth (0 < _b < 0.5)
 //  _As     :   stop-band attenuation [dB], _As > 0
 unsigned int estimate_req_filter_len(float _df,
                                      float _As);
 
-// estimate filter stop-band attenuation given  
+// estimate filter stop-band attenuation given       估计滤波器的阻带衰减
 //  _df     :   transition bandwidth (0 < _b < 0.5)
 //  _N      :   filter length
 float estimate_req_filter_As(float        _df,
                              unsigned int _N);
 
-// estimate filter transition bandwidth given  
+// estimate filter transition bandwidth given      估计滤波器过渡带宽
 //  _As     :   stop-band attenuation [dB], _As > 0
 //  _N      :   filter length
 float estimate_req_filter_df(float        _As,
                              unsigned int _N);
 
 
-// returns the Kaiser window beta factor give the filter's target  
+// returns the Kaiser window beta factor give the filter's target    返回Kaiser窗口的β系数，给出过滤器的目标值
 // stop-band attenuation (As) [Vaidyanathan:1993]  
 //  _As     :   target filter's stop-band attenuation [dB], _As > 0
 float kaiser_beta_As(float _As);
@@ -1947,17 +1947,17 @@ void firdespm_run(unsigned int            _h_len,
                   liquid_firdespm_btype   _btype,
                   float *                 _h);
 
-// run filter design for basic low-pass filter  
+// run filter design for basic low-pass filter     基本低通滤波器的运行滤波器设计
 //  _n      : filter length, _n > 0
 //  _fc     : cutoff frequency, 0 < _fc < 0.5
 //  _As     : stop-band attenuation [dB], _As > 0
 //  _mu     : fractional sample offset, -0.5 < _mu < 0.5 [ignored]
 //  _h      : output coefficient buffer, [size: _n x 1]
-void firdespm_lowpass(unsigned int _n,   
-	float        _fc,    
-	float        _As,    
-	float        _mu,    
-	float *      _h);    
+void firdespm_lowpass(unsigned int _n,    //滤波器长度
+	float        _fc,     //截止频率
+	float        _As,     //阻带衰减
+	float        _mu,     //分数采样偏移量
+	float *      _h);     //输出系数缓冲器
 
 // firdespm response callback function
 //  _frequency  : normalized frequency
@@ -2008,11 +2008,11 @@ void firdespm_destroy(firdespm _q);
 // print firdespm object internals
 void firdespm_print(firdespm _q);
 
-// execute filter design, storing result in _h  
+// execute filter design, storing result in _h   执行过滤器设计，将结果存储在_h
 void firdespm_execute(firdespm _q, float * _h);
 
 
-// Design FIR using kaiser window     
+// Design FIR using kaiser window       用kaiser窗设计FIR
 //  _n      : filter length, _n > 0
 //  _fc     : cutoff frequency, 0 < _fc < 0.5
 //  _As     : stop-band attenuation [dB], _As > 0
@@ -2024,7 +2024,7 @@ void liquid_firdes_kaiser(unsigned int _n,
                           float _mu,
                           float *_h);
 
-// Design finite impulse response notch filter      
+// Design finite impulse response notch filter         有限脉冲响应陷波器的设计
 //  _m      : filter semi-length, m in [1,1000]
 //  _f0     : filter notch frequency (normalized), -0.5 <= _fc <= 0.5
 //  _As     : stop-band attenuation [dB], _As > 0
@@ -2034,7 +2034,7 @@ void liquid_firdes_notch(unsigned int _m,
                          float        _As,
                          float *      _h);
 
-// Design FIR doppler filter   
+// Design FIR doppler filter   设计FIR多普勒滤波器
 //  _n      : filter length
 //  _fd     : normalized doppler frequency (0 < _fd < 0.5)
 //  _K      : Rice fading factor (K >= 0)
@@ -2047,7 +2047,7 @@ void liquid_firdes_doppler(unsigned int _n,
                            float *      _h);
 
 
-// Design Nyquist raised-cosine filter  
+// Design Nyquist raised-cosine filter      奈奎斯特升余弦滤波器的设计
 //  _k      : samples/symbol
 //  _m      : symbol delay
 //  _beta   : rolloff factor (0 < beta <= 1)
@@ -2059,35 +2059,35 @@ void liquid_firdes_rcos(unsigned int _k,
                         float _dt,
                         float * _h);
 
-// Design root-Nyquist raised-cosine filter  
+// Design root-Nyquist raised-cosine filter    设计根奈奎斯特升余弦滤波器
 void liquid_firdes_rrcos(unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 
-// Design root-Nyquist Kaiser filter    
+// Design root-Nyquist Kaiser filter      设计根奈奎斯特Kaiser滤波器
 void liquid_firdes_rkaiser(unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 
-// Design (approximate) root-Nyquist Kaiser filter    
+// Design (approximate) root-Nyquist Kaiser filter     设计（近似）根奈奎斯特Kaiser滤波器
 void liquid_firdes_arkaiser(unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 
-// Design root-Nyquist harris-Moerder filter    
+// Design root-Nyquist harris-Moerder filter     设计根Nyquist-harris-Moerder滤波器
 void liquid_firdes_hM3(unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 
-// Design GMSK transmit and receive filters     
+// Design GMSK transmit and receive filters     设计GMSK收发滤波器
 void liquid_firdes_gmsktx(unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 void liquid_firdes_gmskrx(unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 
-// Design flipped exponential Nyquist/root-Nyquist filters   
+// Design flipped exponential Nyquist/root-Nyquist filters      设计翻转指数型奈奎斯特/根奈奎斯特滤波器
 void liquid_firdes_fexp( unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 void liquid_firdes_rfexp(unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 
-// Design flipped hyperbolic secand Nyquist/root-Nyquist filters       
+// Design flipped hyperbolic secand Nyquist/root-Nyquist filters        设计翻转双曲secand-Nyquist/root-Nyquist滤波器
 void liquid_firdes_fsech( unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 void liquid_firdes_rfsech(unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
  
-// Design flipped arc-hyperbolic secand Nyquist/root-Nyquist filters      
+// Design flipped arc-hyperbolic secand Nyquist/root-Nyquist filters       设计倒弧双曲secand-Nyquist/root-Nyquist滤波器
 void liquid_firdes_farcsech( unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 void liquid_firdes_rfarcsech(unsigned int _k, unsigned int _m, float _beta, float _dt, float * _h);
 
-// Compute group delay for an FIR filter     
+// Compute group delay for an FIR filter      计算FIR滤波器的群时延
 //  _h      : filter coefficients array
 //  _n      : filter length
 //  _fc     : frequency at which delay is evaluated (-0.5 < _fc < 0.5)
@@ -2163,7 +2163,7 @@ float liquid_filter_energy(float *      _h,
 
 
 //
-// IIR filter design 
+// IIR filter design 无限脉冲响应滤波器设计
 //
 
 // IIR filter design filter type  
@@ -2359,7 +2359,7 @@ int iirdes_isstable(float * _b,
                     unsigned int _n);
 
 //
-// linear prediction    
+// linear prediction    线性预测
 //
 
 // compute the linear prediction coefficients for an input signal _x
@@ -2389,7 +2389,7 @@ void liquid_levinson(float * _r,
                      float * _e);
 
 //
-// auto-correlator (delay cross-correlation)     
+// auto-correlator (delay cross-correlation)      自相关器（延迟互相关）
 // 
 
 #define LIQUID_AUTOCORR_MANGLE_CCCF(name) LIQUID_CONCAT(autocorr_cccf,name)
@@ -2467,7 +2467,7 @@ LIQUID_AUTOCORR_DEFINE_API(LIQUID_AUTOCORR_MANGLE_RRRF,
 
 
 //
-// Finite impulse response filter    
+// Finite impulse response filter     有限脉冲响应滤波器
 //
 
 #define LIQUID_FIRFILT_MANGLE_RRRF(name) LIQUID_CONCAT(firfilt_rrrf,name)
@@ -2638,7 +2638,7 @@ LIQUID_FIRFILT_DEFINE_API(LIQUID_FIRFILT_MANGLE_CCCF,
                           liquid_float_complex)
 
 //
-// FIR Hilbert transform 
+// FIR Hilbert transform    FIR-Hilbert变换
 //  2:1 real-to-complex decimator
 //  1:2 complex-to-real interpolator
 //
@@ -2735,7 +2735,7 @@ LIQUID_FIRHILB_DEFINE_API(LIQUID_FIRHILB_MANGLE_FLOAT, float, liquid_float_compl
 
 
 //
-// Infinite impulse response (IIR) Hilbert transform 
+// Infinite impulse response (IIR) Hilbert transform   无限冲激响应希尔伯特变换
 //  2:1 real-to-complex decimator
 //  1:2 complex-to-real interpolator
 //
@@ -2835,7 +2835,7 @@ LIQUID_IIRHILB_DEFINE_API(LIQUID_IIRHILB_MANGLE_FLOAT, float, liquid_float_compl
 
 
 //
-// FFT-based finite impulse response filter 
+// FFT-based finite impulse response filter   基于FFT的有限脉冲响应滤波器
 //
 
 #define LIQUID_FFTFILT_MANGLE_RRRF(name) LIQUID_CONCAT(fftfilt_rrrf,name)
@@ -2907,7 +2907,7 @@ LIQUID_FFTFILT_DEFINE_API(LIQUID_FFTFILT_MANGLE_CCCF,
 
 
 //
-// Infinite impulse response filter
+// Infinite impulse response filter    无限脉冲响应滤波器
 //
 
 #define LIQUID_IIRFILT_MANGLE_RRRF(name) LIQUID_CONCAT(iirfilt_rrrf,name)
@@ -3059,7 +3059,7 @@ LIQUID_IIRFILT_DEFINE_API(LIQUID_IIRFILT_MANGLE_CCCF,
 
 
 //
-// FIR Polyphase filter bank 
+// FIR Polyphase filter bank   FIR多相滤波器组
 //
 #define LIQUID_FIRPFB_MANGLE_RRRF(name) LIQUID_CONCAT(firpfb_rrrf,name)
 #define LIQUID_FIRPFB_MANGLE_CRCF(name) LIQUID_CONCAT(firpfb_crcf,name)
@@ -3208,7 +3208,7 @@ LIQUID_FIRPFB_DEFINE_API(LIQUID_FIRPFB_MANGLE_CCCF,
                          liquid_float_complex)
 
 //
-// Interpolators  
+// Interpolators   插补细分器
 //
 
 // firinterp : finite impulse response interpolator
@@ -3323,7 +3323,7 @@ LIQUID_FIRINTERP_DEFINE_API(LIQUID_FIRINTERP_MANGLE_CCCF,
                             liquid_float_complex,
                             liquid_float_complex)
 
-// iirinterp : infinite impulse response interpolator 
+// iirinterp : infinite impulse response interpolator    无限脉冲响应内插器
 
 #define LIQUID_IIRINTERP_MANGLE_RRRF(name) LIQUID_CONCAT(iirinterp_rrrf,name)
 #define LIQUID_IIRINTERP_MANGLE_CRCF(name) LIQUID_CONCAT(iirinterp_crcf,name)
@@ -3431,7 +3431,7 @@ LIQUID_IIRINTERP_DEFINE_API(LIQUID_IIRINTERP_MANGLE_CCCF,
                             liquid_float_complex)
 
 //
-// Decimators
+// Decimators   抽取器
 //
 
 // firdecim : finite impulse response decimator
@@ -3531,7 +3531,7 @@ LIQUID_FIRDECIM_DEFINE_API(LIQUID_FIRDECIM_MANGLE_CCCF,
                            liquid_float_complex)
 
 
-// iirdecim : infinite impulse response decimator
+// iirdecim : infinite impulse response decimator   无限脉冲响应抽取器
 
 #define LIQUID_IIRDECIM_MANGLE_RRRF(name) LIQUID_CONCAT(iirdecim_rrrf,name)
 #define LIQUID_IIRDECIM_MANGLE_CRCF(name) LIQUID_CONCAT(iirdecim_crcf,name)
@@ -3640,7 +3640,7 @@ LIQUID_IIRDECIM_DEFINE_API(LIQUID_IIRDECIM_MANGLE_CCCF,
 
 
 //
-// Half-band resampler
+// Half-band resampler   半带重采样器
 //
 #define LIQUID_RESAMP2_MANGLE_RRRF(name) LIQUID_CONCAT(resamp2_rrrf,name)
 #define LIQUID_RESAMP2_MANGLE_CRCF(name) LIQUID_CONCAT(resamp2_crcf,name)
@@ -3750,7 +3750,7 @@ LIQUID_RESAMP2_DEFINE_API(LIQUID_RESAMP2_MANGLE_CCCF,
 
 
 //
-// Rational resampler
+// Rational resampler   理性重采样器
 //
 #define LIQUID_RRESAMP_MANGLE_RRRF(name) LIQUID_CONCAT(rresamp_rrrf,name)
 #define LIQUID_RRESAMP_MANGLE_CRCF(name) LIQUID_CONCAT(rresamp_crcf,name)
@@ -3899,7 +3899,7 @@ LIQUID_RRESAMP_DEFINE_API(LIQUID_RRESAMP_MANGLE_CCCF,
 
 
 //
-// Arbitrary resampler
+// Arbitrary resampler 任意重采样器
 //
 #define LIQUID_RESAMP_MANGLE_RRRF(name) LIQUID_CONCAT(resamp_rrrf,name)
 #define LIQUID_RESAMP_MANGLE_CRCF(name) LIQUID_CONCAT(resamp_crcf,name)
@@ -4018,7 +4018,7 @@ LIQUID_RESAMP_DEFINE_API(LIQUID_RESAMP_MANGLE_CCCF,
 
 
 //
-// Multi-stage half-band
+// Multi-stage half-band     多级半带重采样器
 // 
 
 // resampling type (interpolator/decimator)
@@ -4098,7 +4098,7 @@ LIQUID_MSRESAMP2_DEFINE_API(LIQUID_MSRESAMP2_MANGLE_CCCF,
 
 
 //
-// Multi-stage arbitrary resampler 
+// Multi-stage arbitrary resampler     多级任意重采样器
 //
 #define LIQUID_MSRESAMP_MANGLE_RRRF(name) LIQUID_CONCAT(msresamp_rrrf,name)
 #define LIQUID_MSRESAMP_MANGLE_CRCF(name) LIQUID_CONCAT(msresamp_crcf,name)
@@ -4164,7 +4164,7 @@ LIQUID_MSRESAMP_DEFINE_API(LIQUID_MSRESAMP_MANGLE_CCCF,
                            liquid_float_complex)
 
 //
-// Direct digital [up/down] synthesizer   
+// Direct digital [up/down] synthesizer    直接数字[上/下]合成器
 //
 
 #define DDS_MANGLE_CCCF(name)  LIQUID_CONCAT(dds_cccf,name)
@@ -4201,7 +4201,7 @@ LIQUID_DDS_DEFINE_API(DDS_MANGLE_CCCF,
 
 
 //
-// Symbol timing recovery (symbol synchronizer) 
+// Symbol timing recovery (symbol synchronizer)    符号定时恢复（符号同步器）
 //
 #define LIQUID_SYMSYNC_MANGLE_RRRF(name) LIQUID_CONCAT(symsync_rrrf,name)
 #define LIQUID_SYMSYNC_MANGLE_CRCF(name) LIQUID_CONCAT(symsync_crcf,name)
@@ -4298,7 +4298,7 @@ LIQUID_SYMSYNC_DEFINE_API(LIQUID_SYMSYNC_MANGLE_CRCF,
 
 
 //
-// Finite impulse response Farrow filter 
+// Finite impulse response Farrow filter    有限脉冲响应法罗滤波器
 //
 
 #define LIQUID_FIRFARROW_MANGLE_RRRF(name) LIQUID_CONCAT(firfarrow_rrrf,name)
@@ -4399,7 +4399,7 @@ LIQUID_FIRFARROW_DEFINE_API(LIQUID_FIRFARROW_MANGLE_CRCF,
 
 
 //
-// Order-statistic filter 
+// Order-statistic filter    顺序统计滤波器
 //
 
 #define LIQUID_ORDFILT_MANGLE_RRRF(name) LIQUID_CONCAT(ordfilt_rrrf,name)
@@ -4473,10 +4473,10 @@ LIQUID_ORDFILT_DEFINE_API(LIQUID_ORDFILT_MANGLE_RRRF,
 
 
 //
-// MODULE : framing   
+// MODULE : framing    模块：框架
 //
 
-// framesyncstats : generic frame synchronizer statistic structure   ͨ
+// framesyncstats : generic frame synchronizer statistic structure   通用帧同步器统计结构
 
 typedef struct {
     // signal quality
@@ -4542,7 +4542,7 @@ typedef int (*framesync_callback)(unsigned char *  _header,
 typedef void (*framesync_csma_callback)(void * _userdata);
 
 //
-// packet encoder/decoder
+// packet encoder/decoder  分组编解码器
 //
 
 typedef struct qpacketmodem_s * qpacketmodem;
@@ -4632,10 +4632,10 @@ int qpacketmodem_decode_soft_payload(qpacketmodem    _q,
                                      unsigned char * _payload);
 
 //
-// pilot generator/synchronizer for packet burst recovery
+// pilot generator/synchronizer for packet burst recovery    用于分组突发恢复的导频发生器/同步器
 //
 
-// get number of pilots in frame 
+// get number of pilots in frame    获取帧中的导频数
 unsigned int qpilot_num_pilots(unsigned int _payload_len,
                                unsigned int _pilot_spacing);
 
@@ -4644,7 +4644,7 @@ unsigned int qpilot_frame_len(unsigned int _payload_len,
                               unsigned int _pilot_spacing);
 
 //
-// pilot generator for packet burst
+// pilot generator for packet burst     分组突发恢复导频发生器
 //    
 
 typedef struct qpilotgen_s * qpilotgen;
@@ -4669,7 +4669,7 @@ void qpilotgen_execute(qpilotgen              _q,
                        liquid_float_complex * _frame);
 
 //
-// pilot synchronizer for packet burst recovery  
+// pilot synchronizer for packet burst recovery     用于分组突发恢复的导频同步器
 //
 typedef struct qpilotsync_s * qpilotsync;
 
@@ -4700,7 +4700,7 @@ float qpilotsync_get_evm (qpilotsync _q);
 
 
 //
-// Basic frame generator (64 bytes data payload)  
+// Basic frame generator (64 bytes data payload)      基本帧生成器（64字节数据有效载荷）
 //
 
 // frame length in samples
@@ -4770,7 +4770,7 @@ void framesync64_set_csma_callbacks(framesync64             _q,
 #endif
 
 //
-// Flexible frame : adjustable payload, mod scheme, etc., but bring    
+// Flexible frame : adjustable payload, mod scheme, etc., but bring        灵活的框架：可调有效载荷，修改方案等，但带来你自己的纠错，冗余检查
 //                  your own error correction, redundancy check
 //
 
@@ -4895,11 +4895,11 @@ void flexframesync_debug_print(flexframesync _q,
                                const char *  _filename);
 
 //
-// bpacket : binary packet suitable for data streaming 
+// bpacket : binary packet suitable for data streaming    适合数据流的二进制数据包
 //
 
 //
-// bpacket generator/encoder   ������/������
+// bpacket generator/encoder   生成器/编码器
 //
 typedef struct bpacketgen_s * bpacketgen;
 
@@ -4944,7 +4944,7 @@ void bpacketgen_encode(bpacketgen _q,
                        unsigned char * _packet);
 
 //
-// bpacket synchronizer/decoder 
+// bpacket synchronizer/decoder    同步器/解码器
 //
 typedef struct bpacketsync_s * bpacketsync;
 typedef int (*bpacketsync_callback)(unsigned char *  _payload,
@@ -4986,7 +4986,7 @@ void bpacketsync_execute_bit(bpacketsync _q,
                              unsigned char _bit);
 
 //
-// M-FSK frame generator
+// M-FSK frame generator   M-FSK帧生成器
 //
 
 typedef struct fskframegen_s * fskframegen;
@@ -5010,7 +5010,7 @@ int fskframegen_write_samples(fskframegen            _fg,
 
 
 //
-// M-FSK frame synchronizer 
+// M-FSK frame synchronizer    M-FSK帧同步器
 //
 
 typedef struct fskframesync_s * fskframesync;
@@ -5036,7 +5036,7 @@ void fskframesync_debug_export (fskframesync _q, const char * _filename);
 
 
 //
-// GMSK frame generator 
+// GMSK frame generator   GMSK帧生成器
 //
 
 typedef struct gmskframegen_s * gmskframegen;
@@ -5061,7 +5061,7 @@ int gmskframegen_write_samples(gmskframegen _q,
 
 
 //
-// GMSK frame synchronizer  
+// GMSK frame synchronizer      GMSK帧同步器
 //
 
 typedef struct gmskframesync_s * gmskframesync;
@@ -5087,7 +5087,7 @@ void gmskframesync_debug_print(gmskframesync _q, const char * _filename);
 
 
 //
-// DSSS frame generator 
+// DSSS frame generator   DSSS帧生成器
 //
 
 typedef struct {
@@ -5125,7 +5125,7 @@ int dsssframegen_write_samples(dsssframegen           _q,
 
 
 //
-// DSSS frame synchronizer  
+// DSSS frame synchronizer  DSSS帧同步器
 //
 
 typedef struct dsssframesync_s * dsssframesync;
@@ -5154,7 +5154,7 @@ void dsssframesync_debug_disable(dsssframesync _q);
 void dsssframesync_debug_print(dsssframesync _q, const char * _filename);
 
 //
-// OFDM flexframe generator  
+// OFDM flexframe generator    OFDM柔性帧发生器
 //
 
 // ofdm frame generator properties
@@ -5231,7 +5231,7 @@ int ofdmflexframegen_write(ofdmflexframegen       _q,
                           unsigned int           _buf_len);
 
 // 
-// OFDM flex frame synchronizer   
+// OFDM flex frame synchronizer      OFDM弹性帧同步器
 //
 
 typedef struct ofdmflexframesync_s * ofdmflexframesync;
@@ -5293,7 +5293,7 @@ void ofdmflexframesync_debug_print(ofdmflexframesync _q,
 
 
 //
-// Binary P/N synchronizer  
+// Binary P/N synchronizer    二进制P/N同步器
 //
 #define LIQUID_BSYNC_MANGLE_RRRF(name) LIQUID_CONCAT(bsync_rrrf,name)
 #define LIQUID_BSYNC_MANGLE_CRCF(name) LIQUID_CONCAT(bsync_crcf,name)
@@ -5354,7 +5354,7 @@ LIQUID_BSYNC_DEFINE_API(LIQUID_BSYNC_MANGLE_CCCF,
 
 
 // 
-// Pre-demodulation synchronizers (binary and otherwise) 
+// Pre-demodulation synchronizers (binary and otherwise)     预同步器（二进制解调）
 //
 #define  LIQUID_PRESYNC_MANGLE_CCCF(name) LIQUID_CONCAT( presync_cccf,name)
 #define LIQUID_BPRESYNC_MANGLE_CCCF(name) LIQUID_CONCAT(bpresync_cccf,name)
@@ -5415,7 +5415,7 @@ LIQUID_PRESYNC_DEFINE_API(LIQUID_BPRESYNC_MANGLE_CCCF,
                           liquid_float_complex)
 
 //
-// Frame detector
+// Frame detector  帧检测器
 //
 
 typedef struct qdetector_cccf_s * qdetector_cccf;
@@ -5497,7 +5497,7 @@ float        qdetector_cccf_get_dphi    (qdetector_cccf _q); // carrier frequenc
 float        qdetector_cccf_get_phi     (qdetector_cccf _q); // carrier phase offset estimate
 
 //
-// Pre-demodulation detector  
+// Pre-demodulation detector     预解调检测器
 //
 
 typedef struct detector_cccf_s * detector_cccf;
@@ -5536,7 +5536,7 @@ int detector_cccf_correlate(detector_cccf        _q,
 
 
 //
-// symbol streaming for testing (no meaningful data, just symbols) 
+// symbol streaming for testing (no meaningful data, just symbols)     用于测试的符号流（没有有意义的数据，只有符号）
 //
 #define LIQUID_SYMSTREAM_MANGLE_CFLOAT(name) LIQUID_CONCAT(symstreamcf,name)
 
@@ -5600,7 +5600,7 @@ LIQUID_SYMSTREAM_DEFINE_API(LIQUID_SYMSTREAM_MANGLE_CFLOAT, liquid_float_complex
 
 
 //
-// multi-signal source for testing (no meaningful data, just signals) 
+// multi-signal source for testing (no meaningful data, just signals)     用于测试的多信号源（没有有意义的数据，只有信号）
 //
 
 #define LIQUID_MSOURCE_MANGLE_CFLOAT(name) LIQUID_CONCAT(msourcecf,name)
@@ -5774,7 +5774,7 @@ LIQUID_MSOURCE_DEFINE_API(LIQUID_MSOURCE_MANGLE_CFLOAT, liquid_float_complex)
 
 
 //
-// Symbol tracking: AGC > symsync > EQ > carrier recovery
+// Symbol tracking: AGC > symsync > EQ > carrier recovery   符号跟踪：AGC>symsync>EQ>载波恢复
 //
 #define LIQUID_SYMTRACK_MANGLE_RRRF(name) LIQUID_CONCAT(symtrack_rrrf,name)
 #define LIQUID_SYMTRACK_MANGLE_CCCF(name) LIQUID_CONCAT(symtrack_cccf,name)
@@ -5875,7 +5875,7 @@ LIQUID_SYMTRACK_DEFINE_API(LIQUID_SYMTRACK_MANGLE_CCCF,
 
 
 //
-// MODULE : math 
+// MODULE : math   数学
 //
 
 // ln( Gamma(z) )
@@ -5939,7 +5939,7 @@ unsigned int liquid_nextpow2(unsigned int _x);
 float liquid_nchoosek(unsigned int _n, unsigned int _k);
 
 //
-// Windowing functions 
+// Windowing functions     窗口函数
 //
 
 // number of window functions available, including "unknown" type
@@ -6050,7 +6050,7 @@ void liquid_kbd_window(unsigned int _wlen,
                        float *      _w);
 
 
-// polynomials
+// polynomials     多项式
 
 
 #define LIQUID_POLY_MANGLE_DOUBLE(name)  LIQUID_CONCAT(poly,   name)
@@ -6245,7 +6245,7 @@ void poly_binomial_expand_pm(unsigned int _n,
 #endif
 
 //
-// modular arithmetic, etc.
+// modular arithmetic, etc.   模运算等
 //
 
 // maximum number of factors
@@ -6290,7 +6290,7 @@ unsigned int liquid_totient(unsigned int _n);
 
 
 //
-// MODULE : matrix
+// MODULE : matrix    模块：矩阵
 //
 
 #define LIQUID_MATRIX_MANGLE_DOUBLE(name)  LIQUID_CONCAT(matrix,   name)
@@ -6764,7 +6764,7 @@ LIQUID_SMATRIX_DEFINE_API(LIQUID_SMATRIX_MANGLE_FLOAT, float)
 LIQUID_SMATRIX_DEFINE_API(LIQUID_SMATRIX_MANGLE_INT,   short int)
 
 //
-// smatrix cross methods
+// smatrix cross methods   smatrix矩阵交叉法
 //
 
 // multiply sparse binary matrix by floating-point matrix
@@ -6789,7 +6789,7 @@ void smatrixb_vmulf(smatrixb _q,
 
 
 //
-// MODULE : modem (modulator/demodulator)
+// MODULE : modem (modulator/demodulator)     模块：调制解调器（调制器/解调器）
 //
 
 // Maximum number of allowed bits per symbol
@@ -6911,7 +6911,7 @@ void liquid_unpack_soft_bits(unsigned int _sym_in,
 
 
 //
-// Linear modem
+// Linear modem  线性调制解调器
 //
 
 #define LIQUID_MODEM_MANGLE_FLOAT(name) LIQUID_CONCAT(modem,name)
@@ -7018,7 +7018,7 @@ LIQUID_MODEM_DEFINE_API(LIQUID_MODEM_MANGLE_FLOAT,float,liquid_float_complex)
 
 
 //
-// continuous-phase modulation
+// continuous-phase modulation     连续相位调制
 //
 
 // gmskmod : GMSK modulator
@@ -7058,7 +7058,7 @@ void gmskdem_demodulate(gmskdem _q,
                         unsigned int * _sym);
 
 //
-// continuous phase frequency-shift keying (CP-FSK) modems
+// continuous phase frequency-shift keying (CP-FSK) modems       连续相移键控（CP-FSK）调制解调器
 //
 
 // CP-FSK filter prototypes
@@ -7164,7 +7164,7 @@ unsigned int cpfskdem_demodulate(cpfskdem               _q,
 
 
 //
-// M-ary frequency-shift keying (MFSK) modems 
+// M-ary frequency-shift keying (MFSK) modems     多进制频移键控（MFSK）调制解调器
 //
 
 // FSK modulator
@@ -7233,7 +7233,7 @@ float fskdem_get_symbol_energy(fskdem       _q,
 
 
 //
-// Analog frequency modulator 
+// Analog frequency modulator    模拟频率调制器
 //
 #define LIQUID_FREQMOD_MANGLE_FLOAT(name) LIQUID_CONCAT(freqmod,name)
 
@@ -7282,7 +7282,7 @@ void FREQMOD(_modulate_block)(FREQMOD()    _q,                              \
 LIQUID_FREQMOD_DEFINE_API(LIQUID_FREQMOD_MANGLE_FLOAT,float,liquid_float_complex)
 
 //
-// Analog frequency demodulator
+// Analog frequency demodulator    模拟频率解调器
 //
 
 #define LIQUID_FREQDEM_MANGLE_FLOAT(name) LIQUID_CONCAT(freqdem,name)
@@ -7381,7 +7381,7 @@ void ampmodem_demodulate_block(ampmodem               _q,
                                float *                _m);
 
 //
-// MODULE : multichannel 
+// MODULE : multichannel    模块：多通道
 //
 
 
@@ -7393,7 +7393,7 @@ void ampmodem_demodulate_block(ampmodem               _q,
 
 
 //
-// Finite impulse response polyphase filterbank channelizer 
+// Finite impulse response polyphase filterbank channelizer      有限脉冲响应多相滤波器组信道化器
 //
 
 #define LIQUID_FIRPFBCH_MANGLE_CRCF(name) LIQUID_CONCAT(firpfbch_crcf,name)
@@ -7480,8 +7480,8 @@ LIQUID_FIRPFBCH_DEFINE_API(LIQUID_FIRPFBCH_MANGLE_CCCF,
 
 
 //
-// Finite impulse response polyphase filterbank channelizer  
-// with output rate 2 Fs / M
+// Finite impulse response polyphase filterbank channelizer        有限脉冲响应多相滤波器组信道化器
+// with output rate 2 Fs / M    输出速率为2 Fs/M
 //   
 
 #define LIQUID_FIRPFBCH2_MANGLE_CRCF(name) LIQUID_CONCAT(firpfbch2_crcf,name)
@@ -7539,8 +7539,8 @@ LIQUID_FIRPFBCH2_DEFINE_API(LIQUID_FIRPFBCH2_MANGLE_CRCF,
                             liquid_float_complex)
 
 //
-// Finite impulse response polyphase filterbank channelizer    
-// with output rate Fs * P / M     
+// Finite impulse response polyphase filterbank channelizer      有限脉冲响应多相滤波器组信道化器
+// with output rate Fs * P / M      输出速率Fs*P/M
 //
 
 #define LIQUID_FIRPFBCHR_MANGLE_CRCF(name) LIQUID_CONCAT(firpfbchr_crcf,name)
@@ -7650,7 +7650,7 @@ void ofdmframe_print_sctype(unsigned char * _p,
 
 
 //
-// OFDM frame (symbol) generator 
+// OFDM frame (symbol) generator      OFDM帧（符号）发生器
 //
 typedef struct ofdmframegen_s * ofdmframegen;
 
@@ -7692,7 +7692,7 @@ void ofdmframegen_writetail(ofdmframegen _q,
                             liquid_float_complex * _x);
 
 //
-// OFDM frame (symbol) synchronizer
+// OFDM frame (symbol) synchronizer      OFDM帧（符号）同步器
 //
 typedef int (*ofdmframesync_callback)(liquid_float_complex * _y,
                                       unsigned char * _p,
@@ -7735,7 +7735,7 @@ void ofdmframesync_debug_print(ofdmframesync _q, const char * _filename);
 
 
 //
-// MODULE : nco (numerically-controlled oscillator)
+// MODULE : nco (numerically-controlled oscillator)       模块：nco（数控振荡器）
 //
 
 // oscillator type
@@ -7963,7 +7963,7 @@ LIQUID_SYNTH_DEFINE_API(SYNTH_MANGLE_FLOAT, float, liquid_float_complex)
 
 
 //
-// MODULE : optimization
+// MODULE : optimization      模块：优化
 //  
 
 // utility function pointer definition
@@ -8005,7 +8005,7 @@ float liquid_spiral(void *       _userdata,
 
 
 //
-// Gradient search
+// Gradient search      梯度搜索
 //
 
 #define LIQUID_OPTIM_MINIMIZE (0)
@@ -8073,7 +8073,7 @@ float qnsearch_execute(qnsearch _g,
                        float _target_utility);
 
 //
-// chromosome (for genetic algorithm search)
+// chromosome (for genetic algorithm search)       染色体（用于遗传算法搜索）
 //
 typedef struct chromosome_s * chromosome;
 
@@ -8136,7 +8136,7 @@ float chromosome_valuef(chromosome _c,
                         unsigned int _index);
 
 //
-// genetic algorithm search
+// genetic algorithm search      遗传算法搜索
 //
 typedef struct gasearch_s * gasearch;
 
@@ -8205,7 +8205,7 @@ void gasearch_getopt(gasearch _q,
                      float * _utility_opt);
 
 //
-// MODULE : quantization
+// MODULE : quantization     模块：量化
 //
 
 float compress_mulaw(float _x, float _mu);
@@ -8280,7 +8280,7 @@ LIQUID_QUANTIZER_DEFINE_API(LIQUID_QUANTIZER_MANGLE_CFLOAT, liquid_float_complex
 
 
 //
-// MODULE : random (number generators) 
+// MODULE : random (number generators)       模块：随机（数字生成器）
 //
 
 
@@ -8373,7 +8373,7 @@ void unscramble_data(unsigned char * _x, unsigned int _len);
 void unscramble_data_soft(unsigned char * _x, unsigned int _len);
 
 //
-// MODULE : sequence
+// MODULE : sequence      模块：序列
 //
 
 // Binary sequence (generic)
@@ -8503,7 +8503,7 @@ void msequence_set_state(msequence    _ms,
 
 
 //
-// MODULE : utility
+// MODULE : utility     模块：实用程序
 //
 
 // pack binary array with symbol(s)
@@ -8672,7 +8672,7 @@ void liquid_get_scale(float   _val,
                       float * _scale);
 
 //
-// MODULE : vector
+// MODULE : vector     模块：矢量
 //
 
 #define LIQUID_VECTOR_MANGLE_RF(name) LIQUID_CONCAT(liquid_vectorf, name)
@@ -8750,7 +8750,7 @@ LIQUID_VECTOR_DEFINE_API(LIQUID_VECTOR_MANGLE_RF, float,                float)
 LIQUID_VECTOR_DEFINE_API(LIQUID_VECTOR_MANGLE_CF, liquid_float_complex, float)
 
 //
-// mixed types
+// mixed types     混合类型
 //
 #if 0
 void liquid_vectorf_add(float *      _a,

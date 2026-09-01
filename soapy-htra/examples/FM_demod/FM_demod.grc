@@ -489,12 +489,14 @@ blocks:
     bandwidth1: '0'
     center_freq0: center_freq
     center_freq1: '0'
-    comment: ''
+    comment: "If your device is connected via USB, \nenter \u201Cinterface=USB,device=0\u201D\
+      \ in the \u201CDevice arguments\u201D field; \nif it is connected via Ethernet,\
+      \ \nenter \u201Cinterface=ETH,ip=192.168.1.100\u201D."
     dc_offset0: '0'
     dc_offset1: '0'
     dc_removal0: 'False'
     dc_removal1: 'True'
-    dev_args: ''
+    dev_args: interface=USB,device=0
     driver: harogic
     freq_correction0: '0'
     freq_correction1: '0'

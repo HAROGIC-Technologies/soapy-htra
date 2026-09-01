@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cstring> // For memcpy
+#include <complex>
 
 // Define constants for clarity
 #define RESOLTRIG 60e6  // Sample rate threshold for auto-selecting CS8
@@ -158,10 +159,14 @@ class SoapyHarogic : public SoapySDR::Device
         void _rx_thread();
         void _apply_settings();
 
+
         // Device identification
         std::string _serial;
         int _dev_index;
         DeviceInfo_TypeDef _dev_info;
+        std::string _physical_interface;
+        int _device_number;
+        std::string _ip_address;
         
         // Harogic API handles and state
         void* _dev_handle;

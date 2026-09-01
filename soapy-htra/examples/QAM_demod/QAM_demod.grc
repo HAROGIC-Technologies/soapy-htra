@@ -266,33 +266,6 @@ blocks:
     coordinate: [928, 348.0]
     rotation: 0
     state: true
-- name: digital_symbol_sync_xx_0_1_0
-  id: digital_symbol_sync_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    constellation: variable_constellation_16qam
-    damping: '0.707'
-    loop_bw: 0.0628*0.1
-    max_dev: '1.5'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    nfilters: '128'
-    osps: '1'
-    pfb_mf_taps: '[]'
-    resamp_type: digital.IR_PFB_MF
-    sps: sps
-    ted_gain: '1.0'
-    ted_type: digital.TED_GARDNER
-    type: cc
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1032, 644.0]
-    rotation: 0
-    state: disabled
 - name: epy_block_0
   id: epy_block
   parameters:
@@ -339,7 +312,7 @@ blocks:
   states:
     _io_cache: ('DDPLL', 'OptimizedDDPLL', [('Loop_BandWidth', '0.01'), ('Damping_Factor',
       '1'), ('Constellation_Object', '<gnuradio.digital.digital_python.constellation_bpsk
-      object at 0x7aff69796b30>')], [('0', 'complex', 1)], [('0', 'complex', 1)],
+      object at 0x75472c425f30>')], [('0', 'complex', 1)], [('0', 'complex', 1)],
       '', ['Constellation_Object', 'Damping_Factor', 'Loop_BandWidth'])
     bus_sink: false
     bus_source: false
@@ -673,12 +646,14 @@ blocks:
     bandwidth1: '0'
     center_freq0: center_freq
     center_freq1: '0'
-    comment: ''
+    comment: "If your device is connected via USB, \nenter \u201Cinterface=USB,device=0\u201D\
+      \ in the \u201CDevice arguments\u201D field; \nif it is connected via Ethernet,\
+      \ \nenter \u201Cinterface=ETH,ip=192.168.1.100\u201D."
     dc_offset0: '0'
     dc_offset1: '0'
     dc_removal0: 'False'
     dc_removal1: 'True'
-    dev_args: ''
+    dev_args: interface=USB,device=0
     driver: harogic
     freq_correction0: '0'
     freq_correction1: '0'
